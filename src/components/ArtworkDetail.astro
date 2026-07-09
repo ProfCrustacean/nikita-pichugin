@@ -1,0 +1,90 @@
+---
+import type { Artwork } from "@lib/schema";
+import { getAdjacentArtwork } from "@lib/content";
+
+interface Props {
+  artwork: Artwork;
+}
+
+const { artwork } = Astro.props;
+const image = artwork.images[0];
+const { previous, next } = getAdjacentArtwork(artwork.slug);
+const imageCount = artwork.images.length;
+---
+
+<article class="detail" aria-labelledby="artwork-title">
+  <div class="detail__inner">
+    <header class="detail__copy">
+      <a class="text-button" href="/portfolio/galereya-rabot-hudozhnika-nikity-pichugina/">Назад к работам</a>
+      <span class="rule-label">Работа / {artwork.year || "Архив"}</span>
+      <h1 id="artwork-title">{artwork.title}</h1>
+      <span class="cyan-rule"></span>
+      <dl class="metadata-list">
+        <div>
+          <dt>Год</dt>
+          <dd>{artwork.year || "Архив"}</dd>
+        </div>
+        <div>
+          <dt>Материал</dt>
+          <dd>{artwork.medium || "Материал не указан"}</dd>
+        </div>
+        <div>
+          <dt>Размер</dt>
+          <dd>{artwork.dimensions || "Размер не указан"}</dd>
+        </div>
+      </dl>
+      {artwork.description && <p class="detail__description">“{artwork.description}”</p>}
+      <div class="detail-nav">
+        {previous ? <a class="underlined-link" href={`/portfolios/${previous.slug}/`}>← {previous.title}</a> : <span></span>}
+        {next ? <a class="underlined-link" href={`/portfolios/${next.slug}/`}>{next.title} →</a> : <span></span>}
+      </div>
+    </header>
+    <div
+      class="detail__image"
+      aria-label={`Изображения работы ${artwork.title}`}
+      data-keyboard-gallery
+      data-keyboard-mode="detail"
+      data-keyboard-total={imageCount}
+    >
+      <div class="detail__image-frame">
+        {
+          image && (
+            <img
+              src={image.localPath}
+              alt={image.alt || artwork.title}
+              width={image.width}
+              height={image.height}
+              loading="eager"
+              data-keyboard-main-image
+            />
+          )
+        }
+        <span class="detail__image-count" data-keyboard-count>01 / {String(imageCount).padStart(2, "0")}</span>
+      </div>
+      {artwork.images.length > 1 && (
+        <div class="detail__thumbs" aria-label="Изображения работы">
+          {
+            artwork.images.map((thumb, index) => (
+              <button
+                type="button"
+                aria-label={`Показать изображение ${index + 1} работы ${artwork.title}`}
+                aria-current={index === 0 ? "true" : undefined}
+                data-keyboard-item
+                data-keyboard-managed-current
+                data-keyboard-active={index === 0 ? "true" : undefined}
+                data-keyboard-src={thumb.localPath}
+                data-keyboard-alt={thumb.alt || artwork.title}
+                data-keyboard-width={thumb.width}
+                data-keyboard-height={thumb.height}
+                data-keyboard-index={index}
+              >
+                <img src={thumb.localPath} alt={thumb.alt || artwork.title} width={thumb.width} height={thumb.height} loading="lazy" />
+                <span>{String(index + 1).padStart(2, "0")}</span>
+              </button>
+            ))
+          }
+        </div>
+      )}
+    </div>
+  </div>
+</article>

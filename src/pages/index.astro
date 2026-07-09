@@ -1,0 +1,24 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import ContactBand from "@components/ContactBand.astro";
+import Hero from "@components/Hero.astro";
+import HomeGallery from "@components/HomeGallery.astro";
+import PhotoMasonry from "@components/PhotoMasonry.astro";
+import WorksGallery from "@components/WorksGallery";
+import { siteContent } from "@lib/content";
+---
+
+<BaseLayout>
+  <Hero />
+  <HomeGallery gallery={siteContent.homeGallery} />
+  <WorksGallery client:load artworks={siteContent.artworks} />
+  <PhotoMasonry
+    images={siteContent.photoWorks.images}
+    intro={siteContent.photoWorks.intro}
+    limit={24}
+    title="Фото"
+    label="Фотоработы"
+    ctaLabel="Открыть всю фотостену"
+  />
+  <ContactBand />
+</BaseLayout>

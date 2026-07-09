@@ -1,0 +1,54 @@
+---
+import type { ImageAsset } from "@lib/schema";
+
+interface Props {
+  images: ImageAsset[];
+  intro: string[];
+  limit?: number;
+  title?: string;
+  label?: string;
+  ctaHref?: string | false;
+  ctaLabel?: string;
+}
+
+const {
+  images,
+  intro,
+  limit,
+  title = "Фото",
+  label = "Фотоработы",
+  ctaHref = "/masterskaya-nikity-pichugina/",
+  ctaLabel = "Фотоработы"
+} = Astro.props;
+const visibleImages = limit ? images.slice(0, limit) : images;
+const sectionClass = limit ? "photo-wall photo-wall--home" : "photo-wall photo-wall--full";
+---
+
+<section class={`section section--tight ${sectionClass}`} id="photo" aria-labelledby="photo-title">
+  <div class="section__inner">
+    <div class="photo-intro">
+      <div class="photo-intro__title">
+        <span class="rule-label">{label}</span>
+        <h2 id="photo-title" class="section-title">{title}</h2>
+        <span class="cyan-rule"></span>
+      </div>
+      <div class="photo-intro__copy">
+        {intro.map((line) => <p>{line}</p>)}
+        {ctaHref && <a class="text-button" href={ctaHref}>{ctaLabel}</a>}
+      </div>
+    </div>
+    <div class="photo-grid" data-keyboard-gallery data-keyboard-mode="focus" aria-label={title}>
+      {visibleImages.map((image, index) => (
+        <a class="photo-grid__item" href={image.localPath} target="_blank" rel="noreferrer" data-keyboard-item data-keyboard-managed-current>
+          <img
+            src={image.localPath}
+            alt={image.alt || image.caption || `Фоторабота ${index + 1}`}
+            width={image.width}
+            height={image.height}
+            loading={index < 8 ? "eager" : "lazy"}
+          />
+        </a>
+      ))}
+    </div>
+  </div>
+</section>

@@ -1,0 +1,181 @@
+<script is:inline>
+  (() => {
+    const gallerySelector = "[data-keyboard-gallery]";
+    const itemSelector = "[data-keyboard-item]";
+    const activeSelector = `${itemSelector}[data-keyboard-active="true"], ${itemSelector}[aria-current="true"]`;
+    const navKeys = new Set(["ArrowLeft", "ArrowRight"]);
+
+    function isTypingTarget(target) {
+      if (!(target instanceof HTMLElement)) return false;
+      if (target.isContentEditable) return true;
+      const tagName = target.tagName.toLowerCase();
+      if (["input", "textarea", "select"].includes(tagName)) return true;
+      const role = target.getAttribute("role");
+      return role === "textbox" || role === "combobox" || role === "searchbox";
+    }
+
+    function isRenderable(element) {
+      const style = window.getComputedStyle(element);
+      if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity) === 0) return false;
+      const rect = element.getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0;
+    }
+
+    function isVisible(element) {
+      if (!isRenderable(element)) return false;
+      const rect = element.getBoundingClientRect();
+      return rect.bottom > 0 && rect.right > 0 && rect.top < window.innerHeight && rect.left < window.innerWidth;
+    }
+
+    function getItems(gallery) {
+      return Array.from(gallery.querySelectorAll(itemSelector)).filter((item) => item instanceof HTMLElement && isRenderable(item));
+    }
+
+    function getActiveIndex(gallery, items) {
+      const focused = document.activeElement instanceof HTMLElement ? document.activeElement.closest(itemSelector) : null;
+      if (focused && gallery.contains(focused)) {
+        const focusedIndex = items.indexOf(focused);
+        if (focusedIndex >= 0) return focusedIndex;
+      }
+
+      const active = gallery.querySelector(activeSelector);
+      if (active) {
+        const activeIndex = items.indexOf(active);
+        if (activeIndex >= 0) return activeIndex;
+      }
+
+      return 0;
+    }
+
+    function visibleScore(gallery) {
+      const rect = gallery.getBoundingClientRect();
+      const visibleWidth = Math.max(0, Math.min(rect.right, window.innerWidth) - Math.max(rect.left, 0));
+      const visibleHeight = Math.max(0, Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0));
+      const visibleArea = visibleWidth * visibleHeight;
+      const totalArea = Math.max(rect.width * rect.height, 1);
+      const ratio = visibleArea / totalArea;
+      const centerDistance = Math.abs(rect.top + rect.height / 2 - window.innerHeight / 2);
+      return ratio * 10_000 - centerDistance;
+    }
+
+    function resolveGallery(target) {
+      if (target instanceof HTMLElement) {
+        const directGallery = target.closest(gallerySelector);
+        if (directGallery instanceof HTMLElement) return directGallery;
+      }
+
+      return Array.from(document.querySelectorAll(gallerySelector))
+        .filter((gallery) => gallery instanceof HTMLElement && getItems(gallery).length > 1 && isVisible(gallery))
+        .sort((a, b) => visibleScore(b) - visibleScore(a))[0] || null;
+    }
+
+    function setActiveAttributes(gallery, nextItem) {
+      getItems(gallery).forEach((item) => {
+        const isActive = item === nextItem;
+        if (isActive) {
+          item.setAttribute("data-keyboard-active", "true");
+          item.setAttribute("aria-current", "true");
+        } else if (item.hasAttribute("data-keyboard-managed-current")) {
+          item.removeAttribute("data-keyboard-active");
+          item.removeAttribute("aria-current");
+        } else {
+          item.removeAttribute("data-keyboard-active");
+        }
+      });
+    }
+
+    function scrollItemIntoView(item) {
+      item.scrollIntoView({
+        block: "nearest",
+        inline: "center",
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"
+      });
+    }
+
+    function updateDetailGallery(gallery, item) {
+      const image = gallery.querySelector("[data-keyboard-main-image]");
+      const counter = gallery.querySelector("[data-keyboard-count]");
+      if (!(image instanceof HTMLImageElement)) return false;
+
+      const src = item.getAttribute("data-keyboard-src");
+      if (!src) return false;
+
+      image.src = src;
+      image.alt = item.getAttribute("data-keyboard-alt") || image.alt;
+      const width = Number(item.getAttribute("data-keyboard-width"));
+      const height = Number(item.getAttribute("data-keyboard-height"));
+      if (width > 0) image.width = width;
+      if (height > 0) image.height = height;
+
+      if (counter) {
+        const index = Number(item.getAttribute("data-keyboard-index")) + 1;
+        const total = Number(gallery.getAttribute("data-keyboard-total")) || getItems(gallery).length;
+        counter.textContent = `${String(index).padStart(2, "0")} / ${String(total).padStart(2, "0")}`;
+      }
+
+      setActiveAttributes(gallery, item);
+      item.focus({ preventScroll: true });
+      scrollItemIntoView(item);
+      return true;
+    }
+
+    function activateItem(gallery, item) {
+      const mode = gallery.getAttribute("data-keyboard-mode") || "click";
+
+      if (mode === "detail") {
+        return updateDetailGallery(gallery, item);
+      }
+
+      if (mode === "focus") {
+        setActiveAttributes(gallery, item);
+        item.focus({ preventScroll: true });
+        scrollItemIntoView(item);
+        return true;
+      }
+
+      item.click();
+      item.focus({ preventScroll: true });
+      if (!gallery.hasAttribute("data-keyboard-managed-scroll")) {
+        scrollItemIntoView(item);
+      }
+      return true;
+    }
+
+    function moveGallery(gallery, direction) {
+      const items = getItems(gallery);
+      if (items.length < 2) return false;
+
+      const currentIndex = getActiveIndex(gallery, items);
+      const nextIndex = (currentIndex + direction + items.length) % items.length;
+      return activateItem(gallery, items[nextIndex]);
+    }
+
+    document.addEventListener("click", (event) => {
+      const target = event.target instanceof HTMLElement ? event.target.closest(itemSelector) : null;
+      const gallery = target instanceof HTMLElement ? target.closest(gallerySelector) : null;
+      if (!(target instanceof HTMLElement) || !(gallery instanceof HTMLElement)) return;
+      if (gallery.getAttribute("data-keyboard-mode") !== "detail") return;
+
+      event.preventDefault();
+      updateDetailGallery(gallery, target);
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (!navKeys.has(event.key)) return;
+      if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+      if (isTypingTarget(event.target)) return;
+      const targetGallery =
+        event.target instanceof HTMLElement ? event.target.closest(gallerySelector) : null;
+      if (targetGallery instanceof HTMLElement && targetGallery.hasAttribute("data-keyboard-local-keys")) return;
+
+      const gallery = resolveGallery(event.target);
+      if (!gallery) return;
+
+      const moved = moveGallery(gallery, event.key === "ArrowRight" ? 1 : -1);
+      if (!moved) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+    });
+  })();
+</script>

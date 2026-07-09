@@ -1,0 +1,12 @@
+---
+import HomeFeedStage from "@components/HomeFeedStage";
+import type { SiteContent } from "@lib/schema";
+
+interface Props {
+  gallery: SiteContent["homeGallery"];
+}
+
+const { gallery } = Astro.props;
+---
+
+<HomeFeedStage client:load gallery={gallery} />

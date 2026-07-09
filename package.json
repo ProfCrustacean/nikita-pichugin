@@ -1,0 +1,42 @@
+{
+  "name": "nikita-pichugin-static",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --host 0.0.0.0",
+    "build": "npm run validate:content && npm run health && ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "preview": "astro preview --host 0.0.0.0",
+    "lint": "ASTRO_TELEMETRY_DISABLED=1 astro check && npm run validate:content",
+    "test": "vitest run tests/content-parsers.test.mjs",
+    "test:e2e": "playwright test",
+    "import:content": "node scripts/import-content.mjs",
+    "classify:source": "node scripts/classify-live-content.mjs",
+    "audit:content-diff": "node scripts/compare-live-content.mjs",
+    "audit:source": "node scripts/audit-source.mjs",
+    "validate:content": "node scripts/validate-content.mjs",
+    "health": "node scripts/health.mjs"
+  },
+  "dependencies": {
+    "@astrojs/react": "latest",
+    "@react-three/fiber": "latest",
+    "astro": "latest",
+    "cheerio": "latest",
+    "he": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "sharp": "latest",
+    "three": "latest"
+  },
+  "devDependencies": {
+    "@astrojs/check": "latest",
+    "@playwright/test": "latest",
+    "@types/he": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@types/three": "latest",
+    "typescript": "latest",
+    "vitest": "latest"
+  }
+}
