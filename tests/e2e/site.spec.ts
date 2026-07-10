@@ -50,7 +50,7 @@ test("work detail separates the reproduction and associated materials", async ({
   await expect(page.locator(".work-media--warm img")).toHaveCount(5);
   await expect(page.locator("[data-work-asset-id]")).toHaveCount(6);
   await expect(page.locator("body")).not.toContainText("Метаданные зафиксированы по подписи");
-  await expect(page.locator("link[rel='canonical']")).toHaveAttribute("href", "https://nikitapichugin.ru/works/otrazhenie-081413fe/");
+  await expect(page.locator("link[rel='canonical']")).toHaveAttribute("href", "https://nikita-pichugin.onrender.com/works/otrazhenie-081413fe/");
   await expect(page.locator("body")).not.toContainText(/NP-[0-9]{4}/);
 });
 

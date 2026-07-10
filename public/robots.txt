@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://nikitapichugin.ru/sitemap.xml
+Sitemap: https://nikita-pichugin.onrender.com/sitemap.xml

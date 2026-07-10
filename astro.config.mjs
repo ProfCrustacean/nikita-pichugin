@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 
 export default defineConfig({
   output: "static",
-  site: "https://nikitapichugin.ru",
+  site: "https://nikita-pichugin.onrender.com",
   vite: {
     resolve: {
       alias: {
