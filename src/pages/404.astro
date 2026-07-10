@@ -1,0 +1,55 @@
+---
+import SundayLayout from "@layouts/SundayLayout.astro";
+---
+
+<SundayLayout title="Страница не найдена" description="Такой страницы в мастерской нет." noIndex>
+  <section class="not-found">
+    <p class="sunday-kicker">404</p>
+    <h1>Здесь остался<br />только свет.</h1>
+    <p>Возможно, страница получила новый адрес или ссылка устарела.</p>
+    <div class="not-found__actions">
+      <a class="sunday-link" href="/">На главную</a>
+      <a href="/works/">К работам</a>
+    </div>
+  </section>
+</SundayLayout>
+
+<style>
+  .not-found {
+    display: grid;
+    align-content: center;
+    gap: 30px;
+    min-height: 82svh;
+    padding: 120px var(--gutter) 70px;
+  }
+
+  .not-found h1,
+  .not-found > p {
+    margin: 0;
+  }
+
+  .not-found h1 {
+    font: 400 clamp(68px, 12vw, 180px)/0.8 var(--serif);
+    letter-spacing: -0.075em;
+  }
+
+  .not-found > p:not(.sunday-kicker) {
+    max-width: 380px;
+    font: 400 14px/1.6 var(--sans);
+  }
+
+  .not-found__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    align-items: center;
+  }
+
+  .not-found__actions > a:not(.sunday-link) {
+    padding-bottom: 8px;
+    color: var(--ink-soft);
+    font: 600 10px/1 var(--sans);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+</style>

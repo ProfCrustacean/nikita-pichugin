@@ -1,0 +1,33 @@
+---
+import { museumSiteContent } from "@lib/museum";
+
+const navigation = [
+  { label: "Работы", href: "/works/" },
+  { label: "Архив", href: "/archive/" },
+  { label: "Мастерская", href: "/studio/" },
+  { label: "Контакты", href: "/contact/" }
+];
+---
+
+<footer class="sunday-footer">
+  <div class="sunday-footer__top">
+    <a class="sunday-footer__mark" href="/" aria-label="Никита Пичугин — на главную">
+      <img src="/favicon.png" width="58" height="58" alt="" />
+    </a>
+    <div class="sunday-footer__contact">
+      <p>Выставки и приобретение работ</p>
+      <a href={`mailto:${museumSiteContent.contact.email}`}>{museumSiteContent.contact.email}</a>
+      <a href={`tel:${museumSiteContent.contact.phoneHref}`}>{museumSiteContent.contact.phone}</a>
+    </div>
+  </div>
+  <div class="sunday-footer__bottom">
+    <nav aria-label="Нижняя навигация">
+      {navigation.map((item) => <a href={item.href}>{item.label}</a>)}
+    </nav>
+    <div class="sunday-footer__social">
+      <a href={museumSiteContent.contact.telegram} rel="me">Telegram</a>
+      <a href={museumSiteContent.contact.vk} rel="me">VK</a>
+    </div>
+    <small>© {new Date().getFullYear()} Никита Пичугин</small>
+  </div>
+</footer>

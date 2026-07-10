@@ -1,24 +1,429 @@
 ---
-import BaseLayout from "@layouts/BaseLayout.astro";
-import ContactBand from "@components/ContactBand.astro";
-import Hero from "@components/Hero.astro";
-import HomeGallery from "@components/HomeGallery.astro";
-import PhotoMasonry from "@components/PhotoMasonry.astro";
-import WorksGallery from "@components/WorksGallery";
-import { siteContent } from "@lib/content";
+import SundayLayout from "@layouts/SundayLayout.astro";
+import LandscapeJourney from "@components/LandscapeJourney.astro";
+import {
+  artworkWorks,
+  getAssetById,
+  getPreviewPath,
+  getPrimaryAsset,
+  getWorkById,
+  getWorkHref,
+  museumSiteContent
+} from "@lib/museum";
+
+const requireWork = (workId: string) => {
+  const work = getWorkById(workId);
+  if (!work) throw new Error(`Missing homepage work ${workId}`);
+  return work;
+};
+
+const heroWork = requireWork("work_e78336cb6f7d8e6e");
+const heroAsset = getPrimaryAsset(heroWork);
+const journeyWorks = [
+  "work_547fc73680582b86",
+  "work_2d7f2bbb431fa546",
+  "work_38ae0a6796e12026",
+  "work_30d1479ac101aae6",
+  "work_1696e001498f0ef4",
+  "work_5c6e922b751b10ba"
+]
+  .map(requireWork)
+  .map((work) => {
+    const asset = getPrimaryAsset(work);
+    return {
+      title: work.displayTitle.ru,
+      image: getPreviewPath(asset),
+      alt: work.displayTitle.ru,
+      aspect: asset.previewWidthPx / asset.previewHeightPx,
+      width: asset.previewWidthPx,
+      height: asset.previewHeightPx,
+      href: getWorkHref(work)
+    };
+  });
+
+const studioJourneyAsset = getPrimaryAsset(requireWork("work_5c6e922b751b10ba"));
+const journeyScenes = [
+  { image: "/site/journey/road-to-church.webp", alt: "Летняя дорога к сельской церкви", position: "54% 48%", width: 1637, height: 1178 },
+  { image: "/site/journey/village-road.webp", alt: "Светлая дорога через деревню", position: "58% 48%", width: 2142, height: 1600 },
+  { image: "/site/journey/church-field.webp", alt: "Церковь среди открытых полей", position: "50% 52%", width: 1873, height: 1600 },
+  { image: getPreviewPath(studioJourneyAsset), alt: "Мир мастерской", position: "50% 45%", width: studioJourneyAsset.previewWidthPx, height: studioJourneyAsset.previewHeightPx }
+];
+
+const collectionWorks = ["work_f1ceaad48a110729", "work_550dd44ad5709fe5", "work_dc8619551aa0ca00"].map(requireWork);
+const portraitAsset = getAssetById(museumSiteContent.portraitAssetId);
+const homeJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      name: "Никита Пичугин — мастерская художника",
+      url: new URL("/", Astro.site ?? Astro.url.origin).href,
+      inLanguage: "ru"
+    },
+    {
+      "@type": "Person",
+      name: "Никита Пичугин",
+      url: new URL("/studio/", Astro.site ?? Astro.url.origin).href,
+      image: new URL(getPreviewPath(portraitAsset!), Astro.site ?? Astro.url.origin).href,
+      jobTitle: "Художник"
+    }
+  ]
+};
 ---
 
-<BaseLayout>
-  <Hero />
-  <HomeGallery gallery={siteContent.homeGallery} />
-  <WorksGallery client:load artworks={siteContent.artworks} />
-  <PhotoMasonry
-    images={siteContent.photoWorks.images}
-    intro={siteContent.photoWorks.intro}
-    limit={24}
-    title="Фото"
-    label="Фотоработы"
-    ctaLabel="Открыть всю фотостену"
-  />
-  <ContactBand />
-</BaseLayout>
+<SundayLayout
+  headerTone="light"
+  bodyClass="sunday-home"
+  image="/site/home-hero.webp"
+  imageAlt={heroWork.displayTitle.ru}
+  description="Мастерская художника Никиты Пичугина: живопись, собрание работ и дорога сквозь пейзаж."
+  jsonLd={homeJsonLd}
+>
+  <section class="home-hero" aria-labelledby="home-title">
+    <img
+      class="home-hero__image"
+      src="/site/home-hero.webp"
+      alt=""
+      width={heroAsset.previewWidthPx}
+      height={heroAsset.previewHeightPx}
+      fetchpriority="high"
+    />
+    <div class="home-hero__shade" aria-hidden="true"></div>
+    <div class="home-hero__content">
+      <h1 id="home-title">Никита <em>Пичугин</em></h1>
+      <div class="home-hero__bottom">
+        <p>Мастерская художника</p>
+        <p>«{heroWork.displayTitle.ru}»</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="home-intro" data-sunday-reveal>
+    <p class="sunday-kicker">Избранное</p>
+    <div>
+      <h2>Свет, тишина<br />и память места.</h2>
+      <p>Свет меняет знакомые мотивы: дорогу, воду, снег и небо.</p>
+      <a class="sunday-link" href="#journey">Начать путь</a>
+    </div>
+  </section>
+
+  <LandscapeJourney id="journey" works={journeyWorks} scenes={journeyScenes} />
+
+  <section class="home-collection" aria-labelledby="collection-title">
+    <header data-sunday-reveal>
+      <p class="sunday-kicker">Собрание</p>
+      <div>
+        <h2 id="collection-title">Живопись и работы на бумаге.</h2>
+        <p>{artworkWorks.length} произведения. Для работ с известными данными указаны год, материалы и размер.</p>
+        <a class="sunday-link" href="/works/">Открыть собрание</a>
+      </div>
+    </header>
+    <div class="home-collection__works">
+      {collectionWorks.map((work, index) => {
+        const asset = getPrimaryAsset(work);
+        return (
+          <a class={`home-collection__work home-collection__work--${index + 1}`} href={getWorkHref(work)} data-sunday-reveal>
+            <figure>
+              <img
+                src={getPreviewPath(asset)}
+                alt=""
+                width={asset.previewWidthPx}
+                height={asset.previewHeightPx}
+                loading="lazy"
+              />
+              <figcaption>
+                <span>{work.displayTitle.ru}</span>
+                {work.creation.displayDate && <span>{work.creation.displayDate}</span>}
+              </figcaption>
+            </figure>
+          </a>
+        );
+      })}
+    </div>
+  </section>
+
+  <section class="home-studio" aria-labelledby="studio-title">
+    <div class="home-studio__portrait" data-sunday-reveal>
+      {portraitAsset && (
+        <img
+          src={getPreviewPath(portraitAsset)}
+          alt="Портрет Никиты Пичугина"
+          width={portraitAsset.previewWidthPx}
+          height={portraitAsset.previewHeightPx}
+          loading="lazy"
+        />
+      )}
+    </div>
+    <div class="home-studio__copy" data-sunday-reveal>
+      <p class="sunday-kicker">Художник</p>
+      <h2 id="studio-title">Внутри мастерской.</h2>
+      <p>Здесь — краски, кисти, инструменты и повседневные вещи художника.</p>
+      <a class="sunday-link" href="/studio/">Открыть мастерскую</a>
+    </div>
+  </section>
+
+</SundayLayout>
+
+<style>
+  .home-hero {
+    position: relative;
+    min-height: 100svh;
+    overflow: hidden;
+    color: var(--white);
+    background: #5e584e;
+    isolation: isolate;
+  }
+
+  .home-hero__image,
+  .home-hero__shade {
+    position: absolute;
+    inset: 0;
+  }
+
+  .home-hero__image {
+    z-index: -3;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 45%;
+    transform: scale(1.025);
+    animation: home-hero-reveal 1.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .home-hero__shade {
+    z-index: -2;
+    background:
+      linear-gradient(180deg, rgba(25, 26, 22, 0.38), transparent 36%),
+      linear-gradient(0deg, rgba(30, 26, 21, 0.66), transparent 54%),
+      linear-gradient(90deg, rgba(21, 24, 20, 0.28), transparent 58%);
+  }
+
+  .home-hero__content {
+    display: grid;
+    align-content: end;
+    min-height: 100svh;
+    padding: 130px var(--gutter) clamp(48px, 7vh, 78px);
+  }
+
+  .home-hero h1 {
+    max-width: 1320px;
+    margin: 0;
+    font: 400 clamp(84px, 15vw, 232px)/0.73 var(--serif);
+    letter-spacing: -0.085em;
+  }
+
+  .home-hero h1 em {
+    display: block;
+    padding-left: 0.47em;
+    font-weight: 400;
+  }
+
+  .home-hero__bottom {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 32px;
+    align-items: end;
+    margin-top: clamp(28px, 5vh, 54px);
+  }
+
+  .home-hero__bottom p {
+    margin: 0;
+    font: 600 10px/1.4 var(--sans);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .home-hero__bottom p:last-child {
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-align: right;
+    opacity: 0.74;
+  }
+
+  .home-intro,
+  .home-collection > header {
+    display: grid;
+    grid-template-columns: 0.7fr 1.3fr;
+    gap: clamp(42px, 8vw, 150px);
+    padding: clamp(100px, 14vw, 210px) var(--gutter);
+  }
+
+  .home-intro > div,
+  .home-collection > header > div {
+    display: grid;
+    gap: 42px;
+  }
+
+  .home-intro h2,
+  .home-collection h2,
+  .home-studio h2 {
+    max-width: 950px;
+    margin: 0;
+    font: 400 clamp(52px, 7.5vw, 116px)/0.92 var(--serif);
+    letter-spacing: -0.065em;
+  }
+
+  .home-intro div > p,
+  .home-collection header div > p,
+  .home-studio__copy > p {
+    max-width: 420px;
+    margin: 0;
+    font: 400 15px/1.65 var(--sans);
+  }
+
+  .home-collection {
+    padding-bottom: clamp(110px, 14vw, 220px);
+    background: var(--paper);
+  }
+
+  .home-collection__works {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: clamp(60px, 10vw, 180px) clamp(30px, 7vw, 110px);
+    align-items: start;
+    padding: 0 var(--gutter);
+  }
+
+  .home-collection__work {
+    display: block;
+  }
+
+  .home-collection__work--1 {
+    grid-column: 1 / -1;
+    width: min(100%, 1180px);
+  }
+
+  .home-collection__work--2 {
+    width: min(100%, 640px);
+    justify-self: end;
+  }
+
+  .home-collection__work--3 {
+    width: min(100%, 520px);
+    margin-top: 16vw;
+  }
+
+  .home-collection figure {
+    margin: 0;
+  }
+
+  .home-collection img {
+    width: 100%;
+    max-height: 82svh;
+    object-fit: cover;
+    transition: transform 850ms cubic-bezier(0.2, 0.7, 0.2, 1), filter 300ms ease;
+  }
+
+  .home-collection__work:hover img {
+    filter: saturate(1.03);
+    transform: scale(1.008);
+  }
+
+  .home-collection figcaption {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    padding-top: 14px;
+    font: 400 clamp(17px, 1.5vw, 24px)/1.2 var(--serif);
+  }
+
+  .home-collection figcaption span:last-child {
+    padding-top: 4px;
+    color: var(--ink-soft);
+    font: 600 9px/1 var(--sans);
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+  }
+
+  .home-studio {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    min-height: 92svh;
+    background: var(--paper-deep);
+  }
+
+  .home-studio__portrait {
+    min-height: 78svh;
+  }
+
+  .home-studio__portrait img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 40%;
+  }
+
+  .home-studio__copy {
+    display: grid;
+    align-content: center;
+    gap: 34px;
+    padding: clamp(70px, 10vw, 170px);
+  }
+
+  @keyframes home-hero-reveal {
+    from { opacity: 0; transform: scale(1.08); }
+    to { opacity: 1; transform: scale(1.025); }
+  }
+
+  @media (max-width: 760px) {
+    .home-hero__content {
+      padding: 100px 20px 42px;
+    }
+
+    .home-hero__image {
+      object-position: 52% 50%;
+    }
+
+    .home-hero h1 {
+      font-size: clamp(72px, 24vw, 124px);
+      line-height: 0.78;
+    }
+
+    .home-hero h1 em {
+      padding-left: 0.16em;
+    }
+
+    .home-hero__bottom,
+    .home-intro,
+    .home-collection > header,
+    .home-studio,
+    .home-collection__works {
+      grid-template-columns: 1fr;
+    }
+
+    .home-hero__bottom p:last-child {
+      display: none;
+    }
+
+    .home-intro,
+    .home-collection > header {
+      gap: 50px;
+      padding-inline: 20px;
+    }
+
+    .home-intro > div,
+    .home-collection > header > div {
+      gap: 32px;
+    }
+
+    .home-collection__works {
+      gap: 74px;
+      padding-inline: 20px;
+    }
+
+    .home-collection__work--1,
+    .home-collection__work--2,
+    .home-collection__work--3 {
+      width: 100%;
+      margin-top: 0;
+    }
+
+    .home-studio__portrait {
+      min-height: 68svh;
+    }
+
+    .home-studio__copy {
+      padding: 80px 20px 110px;
+    }
+  }
+</style>

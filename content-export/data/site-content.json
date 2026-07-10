@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "1.2.0",
+  "brand": {
+    "ru": "Никита Пичугин",
+    "en": "Nikita Pichugin"
+  },
+  "introduction": {
+    "ru": "Здравствуйте! Меня зовут Никита Пичугин, я художник. Добро пожаловать на мой сайт.",
+    "en": "Hello! My name is Nikita Pichugin, I am an artist. Welcome to my website."
+  },
+  "photoWorksIntroduction": "Фиксируя на фотоаппарат материальный мир, также как и в живописи, я передаю свои ощущения Настоящего Момента. С самого детства меня всегда завораживала необъяснимая игра солнечного света Бесполезное занятие - специально ходить с фотоаппаратом в поиске сюжетов, так как самое интересное всегда находится спонтанно, поэтому большинство фотографий сделаны с помощью фотокамеры телефона. Самое интересное всегда находится спонтанно",
+  "exhibitionTourUrl": "https://erzia-museum.ru/stranicy/12029/",
+  "contact": {
+    "phone": "8 (927) 177-68-78",
+    "phoneHref": "+79271776878",
+    "email": "x-tarmit@yandex.ru",
+    "vk": "https://vk.com/id9435682",
+    "telegram": "https://t.me/nikitapichygin"
+  },
+  "portraitAssetId": "asset_7765879c35ce1293",
+  "sourcePages": {
+    "home": "https://nikitapichugin.ru/",
+    "portfolio": "https://nikitapichugin.ru/portfolio/galereya-rabot-hudozhnika-nikity-pichugina/",
+    "photoWorks": "https://nikitapichugin.ru/masterskaya-nikity-pichugina/",
+    "contact": "https://nikitapichugin.ru/contact-info/"
+  }
+}

@@ -1,0 +1,389 @@
+export const SCHEMA_VERSION = "1.2.0";
+
+const status = {
+  type: "string",
+  enum: ["known", "unknown", "not_applicable", "not_visible", "needs_owner_input"]
+};
+
+const provenance = {
+  type: "object",
+  additionalProperties: false,
+  required: ["method", "confidence", "reviewStatus"],
+  properties: {
+    method: {
+      type: "string",
+      enum: ["source_text", "source_metadata", "exif", "visual_observation", "cross_record_match", "cataloguer_supplied", "system"]
+    },
+    sourceUrl: { type: ["string", "null"] },
+    sourceLabel: { type: ["string", "null"] },
+    confidence: { type: "string", enum: ["high", "medium", "low"] },
+    reviewStatus: { type: "string", enum: ["verified", "needs_review", "needs_owner_input"] }
+  }
+};
+
+const localizedText = {
+  type: "object",
+  additionalProperties: false,
+  required: ["ru", "en"],
+  properties: {
+    ru: { type: "string", minLength: 1 },
+    en: { type: "string", minLength: 1 }
+  }
+};
+
+export const catalogSchema = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://nikitapichugin.ru/schemas/museum-collection-1.2.0.json",
+  title: "Nikita Pichugin museum-aligned collection export",
+  type: "object",
+  additionalProperties: false,
+  required: ["manifest", "assets", "works", "placements", "authorities", "siteContent"],
+  properties: {
+    manifest: { $ref: "#/$defs/manifest" },
+    assets: { type: "array", items: { $ref: "#/$defs/asset" } },
+    works: { type: "array", items: { $ref: "#/$defs/work" } },
+    placements: { type: "array", items: { $ref: "#/$defs/placement" } },
+    authorities: { type: "array", items: { $ref: "#/$defs/authority" } },
+    siteContent: { type: "object" }
+  },
+  $defs: {
+    provenance,
+    localizedText,
+    manifest: {
+      type: "object",
+      additionalProperties: false,
+      required: ["schemaVersion", "sourceBaseUrl", "snapshotId", "generatedAt", "counts", "sourceBaselines", "errors", "warnings"],
+      properties: {
+        schemaVersion: { const: SCHEMA_VERSION },
+        sourceBaseUrl: { type: "string", format: "uri" },
+        snapshotId: { type: "string", minLength: 8 },
+        generatedAt: { type: "string", format: "date-time" },
+        counts: { type: "object", additionalProperties: { type: "integer", minimum: 0 } },
+        sourceBaselines: { type: "object" },
+        errors: { type: "array", items: { type: "string" } },
+        warnings: { type: "array", items: { type: "string" } }
+      }
+    },
+    asset: {
+      type: "object",
+      additionalProperties: false,
+      required: [
+        "schemaVersion",
+        "assetId",
+        "sha256",
+        "perceptualHash",
+        "originalPath",
+        "previewPath",
+        "sourceFilename",
+        "mimeType",
+        "byteSize",
+        "widthPx",
+        "heightPx",
+        "previewWidthPx",
+        "previewHeightPx",
+        "orientation",
+        "color",
+        "exif",
+        "wpMediaIds",
+        "sourceUrls",
+        "visualClass",
+        "classConfidence",
+        "reviewStatus",
+        "quality",
+        "rights"
+      ],
+      properties: {
+        schemaVersion: { const: SCHEMA_VERSION },
+        assetId: { type: "string", pattern: "^asset_[a-f0-9]{16}$" },
+        sha256: { type: "string", pattern: "^[a-f0-9]{64}$" },
+        perceptualHash: { type: "string", pattern: "^[a-f0-9]{16}$" },
+        originalPath: { type: "string", pattern: "^media/originals/" },
+        previewPath: { type: "string", pattern: "^media/previews/" },
+        sourceFilename: { type: "string", minLength: 1 },
+        mimeType: { type: "string", pattern: "^image/" },
+        byteSize: { type: "integer", minimum: 1 },
+        widthPx: { type: "integer", minimum: 1 },
+        heightPx: { type: "integer", minimum: 1 },
+        previewWidthPx: { type: "integer", minimum: 1 },
+        previewHeightPx: { type: "integer", minimum: 1 },
+        orientation: { type: ["integer", "null"], minimum: 1, maximum: 8 },
+        color: {
+          type: "object",
+          additionalProperties: false,
+          required: ["space", "channels", "hasIccProfile", "isOpaque"],
+          properties: {
+            space: { type: ["string", "null"] },
+            channels: { type: ["integer", "null"] },
+            hasIccProfile: { type: "boolean" },
+            isOpaque: { type: ["boolean", "null"] }
+          }
+        },
+        exif: { type: "object" },
+        wpMediaIds: { type: "array", items: { type: "integer" }, uniqueItems: true },
+        sourceUrls: {
+          type: "array",
+          minItems: 1,
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["url", "role"],
+            properties: {
+              url: { type: "string", format: "uri" },
+              role: { type: "string", enum: ["discovered", "wordpress_source", "wordpress_original", "downloaded"] }
+            }
+          }
+        },
+        visualClass: {
+          type: "string",
+          enum: ["artwork_reproduction", "photographic_work", "studio_or_process_photo", "context_or_reference_photo", "artist_portrait", "site_graphic", "unknown"]
+        },
+        classConfidence: { type: "string", enum: ["high", "medium", "low"] },
+        reviewStatus: { type: "string", enum: ["verified", "needs_review", "needs_owner_input"] },
+        possibleDuplicateGroup: { type: ["string", "null"] },
+        quality: {
+          type: "object",
+          additionalProperties: false,
+          required: ["resolutionTier", "selectedSourceUrl", "decoded"],
+          properties: {
+            resolutionTier: { type: "string", enum: ["wordpress_original", "source_full", "largest_variant", "discovered_only"] },
+            selectedSourceUrl: { type: "string", format: "uri" },
+            decoded: { const: true }
+          }
+        },
+        rights: {
+          type: "object",
+          additionalProperties: false,
+          required: ["status", "copyrightHolder", "usageTerms"],
+          properties: {
+            status,
+            copyrightHolder: { type: ["string", "null"] },
+            usageTerms: { type: ["string", "null"] }
+          }
+        }
+      }
+    },
+    work: {
+      type: "object",
+      additionalProperties: false,
+      required: [
+        "schemaVersion",
+        "workId",
+        "sourceKey",
+        "publicSlug",
+        "catalogLevel",
+        "artistInventoryNumber",
+        "recordType",
+        "objectWorkType",
+        "classification",
+        "creator",
+        "titles",
+        "displayTitle",
+        "creation",
+        "capture",
+        "physicalDescription",
+        "subjects",
+        "description",
+        "inscriptions",
+        "history",
+        "rights",
+        "assetIds",
+        "relatedWorkIds",
+        "recordSource",
+        "fieldStatus",
+        "qualityControl"
+      ],
+      properties: {
+        schemaVersion: { const: SCHEMA_VERSION },
+        workId: { type: "string", pattern: "^work_[a-f0-9]{16}$" },
+        sourceKey: { type: "string", minLength: 1 },
+        publicSlug: { type: "string", pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+        catalogLevel: { const: "item" },
+        artistInventoryNumber: {
+          type: "object",
+          additionalProperties: false,
+          required: ["value", "status", "provenance"],
+          properties: {
+            value: { type: ["string", "null"] },
+            status,
+            provenance: { $ref: "#/$defs/provenance" }
+          }
+        },
+        recordType: { type: "string", enum: ["artwork", "photographic_work"] },
+        objectWorkType: { type: "string", minLength: 1 },
+        classification: { type: "array", minItems: 1, items: { type: "string" } },
+        creator: {
+          type: "object",
+          additionalProperties: false,
+          required: ["authorityId", "displayName", "role", "attributionQualifier", "provenance"],
+          properties: {
+            authorityId: { const: "person_nikita_pichugin" },
+            displayName: { const: "Никита Пичугин" },
+            role: { type: "string", enum: ["artist", "photographer"] },
+            attributionQualifier: { const: "attributed_on_official_site" },
+            provenance: { $ref: "#/$defs/provenance" }
+          }
+        },
+        titles: {
+          type: "array",
+          minItems: 2,
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["text", "language", "type", "preferred", "provenance"],
+            properties: {
+              text: { type: "string", minLength: 1 },
+              language: { type: "string", enum: ["ru", "en"] },
+              type: { type: "string", enum: ["source_stated", "cataloguer_supplied", "translated", "alternative", "technical_identifier"] },
+              preferred: { type: "boolean" },
+              provenance: { $ref: "#/$defs/provenance" }
+            }
+          }
+        },
+        displayTitle: { $ref: "#/$defs/localizedText" },
+        creation: {
+          type: "object",
+          additionalProperties: false,
+          required: ["displayDate", "earliestYear", "latestYear", "dateQualifier", "place", "status", "provenance"],
+          properties: {
+            displayDate: { type: ["string", "null"] },
+            earliestYear: { type: ["integer", "null"], minimum: 1000, maximum: 2200 },
+            latestYear: { type: ["integer", "null"], minimum: 1000, maximum: 2200 },
+            dateQualifier: { type: ["string", "null"] },
+            place: { type: ["string", "null"] },
+            status,
+            provenance: { $ref: "#/$defs/provenance" }
+          }
+        },
+        capture: {
+          type: "object",
+          additionalProperties: false,
+          required: ["displayDate", "filenameDateCandidate", "exifDate", "status", "provenance"],
+          properties: {
+            displayDate: { type: ["string", "null"] },
+            filenameDateCandidate: { type: ["string", "null"] },
+            exifDate: { type: ["string", "null"] },
+            status,
+            provenance: { $ref: "#/$defs/provenance" }
+          }
+        },
+        physicalDescription: {
+          type: "object",
+          additionalProperties: false,
+          required: ["materialsTechniquesDisplay", "support", "techniques", "dimensions", "status", "provenance"],
+          properties: {
+            materialsTechniquesDisplay: { type: ["string", "null"] },
+            support: { type: ["string", "null"] },
+            techniques: { type: "array", items: { type: "string" } },
+            dimensions: {
+              type: "object",
+              additionalProperties: false,
+              required: ["display", "values", "unit", "axisOrder", "extent", "qualifier", "status"],
+              properties: {
+                display: { type: ["string", "null"] },
+                values: { type: "array", items: { type: "number", exclusiveMinimum: 0 } },
+                unit: { type: ["string", "null"], enum: ["cm", null] },
+                axisOrder: { const: "source_order_unknown" },
+                extent: { type: ["string", "null"] },
+                qualifier: { type: ["string", "null"] },
+                status
+              }
+            },
+            status,
+            provenance: { $ref: "#/$defs/provenance" }
+          }
+        },
+        subjects: {
+          type: "object",
+          additionalProperties: false,
+          required: ["genre", "general", "specific", "depictedPeople", "depictedPlaces", "season", "timeOfDay", "keywords", "provenance"],
+          properties: {
+            genre: { type: "array", items: { type: "string" } },
+            general: { type: "array", items: { type: "string" } },
+            specific: { type: "array", items: { type: "string" } },
+            depictedPeople: { type: "array", items: { type: "string" } },
+            depictedPlaces: { type: "array", items: { type: "string" } },
+            season: { type: ["string", "null"] },
+            timeOfDay: { type: ["string", "null"] },
+            keywords: { type: "array", items: { type: "string" } },
+            provenance: { $ref: "#/$defs/provenance" }
+          }
+        },
+        description: { $ref: "#/$defs/localizedText" },
+        inscriptions: { type: "array", items: { type: "object" } },
+        history: {
+          type: "object",
+          additionalProperties: false,
+          required: ["condition", "provenance", "currentOwner", "currentLocation", "exhibitions", "bibliography"],
+          properties: {
+            condition: { type: "object" },
+            provenance: { type: "object" },
+            currentOwner: { type: "object" },
+            currentLocation: { type: "object" },
+            exhibitions: { type: "object" },
+            bibliography: { type: "object" }
+          }
+        },
+        rights: {
+          type: "object",
+          additionalProperties: false,
+          required: ["workCopyright", "imageCopyright", "creditLine", "usageTerms"],
+          properties: {
+            workCopyright: { type: "object" },
+            imageCopyright: { type: "object" },
+            creditLine: { type: "object" },
+            usageTerms: { type: "object" }
+          }
+        },
+        assetIds: { type: "array", minItems: 1, items: { type: "string", pattern: "^asset_" }, uniqueItems: true },
+        relatedWorkIds: { type: "array", items: { type: "string", pattern: "^work_" }, uniqueItems: true },
+        recordSource: { type: "array", minItems: 1, items: { type: "object" } },
+        fieldStatus: { type: "object" },
+        qualityControl: {
+          type: "object",
+          additionalProperties: false,
+          required: ["completenessScore", "reviewStatus", "warnings"],
+          properties: {
+            completenessScore: { type: "number", minimum: 0, maximum: 1 },
+            reviewStatus: { type: "string", enum: ["verified", "needs_review", "needs_owner_input"] },
+            warnings: { type: "array", items: { type: "string" } }
+          }
+        }
+      }
+    },
+    placement: {
+      type: "object",
+      additionalProperties: false,
+      required: ["schemaVersion", "placementId", "assetId", "workId", "collection", "sourcePageUrl", "sourceOrder", "rawLabel", "labelKind", "role", "wpMediaId"],
+      properties: {
+        schemaVersion: { const: SCHEMA_VERSION },
+        placementId: { type: "string", pattern: "^placement_[a-f0-9]{16}$" },
+        assetId: { type: "string", pattern: "^asset_" },
+        workId: { type: ["string", "null"], pattern: "^work_" },
+        collection: {
+          type: "string",
+          enum: ["home.feed", "home.archive.2011_2020", "home.archive.2006_2010", "home.archive.1997_2005", "home.unsorted", "portfolio.listing", "portfolio.detail", "photoworks", "site.primary"]
+        },
+        sourcePageUrl: { type: "string", format: "uri" },
+        sourceOrder: { type: "integer", minimum: 0 },
+        rawLabel: { type: ["string", "null"] },
+        labelKind: { type: "string", enum: ["source_caption", "technical_filename", "date_filename", "missing"] },
+        role: { type: "string" },
+        wpMediaId: { type: ["integer", "null"] }
+      }
+    },
+    authority: {
+      type: "object",
+      additionalProperties: false,
+      required: ["schemaVersion", "authorityId", "type", "preferredLabel", "alternativeLabels", "externalUri", "source"],
+      properties: {
+        schemaVersion: { const: SCHEMA_VERSION },
+        authorityId: { type: "string", minLength: 3 },
+        type: { type: "string", enum: ["person", "place", "material", "technique", "genre", "subject", "work_type"] },
+        preferredLabel: { $ref: "#/$defs/localizedText" },
+        alternativeLabels: { type: "array", items: { type: "string" } },
+        externalUri: { type: ["string", "null"] },
+        source: { type: "string" }
+      }
+    }
+  }
+};

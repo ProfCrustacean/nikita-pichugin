@@ -1,0 +1,449 @@
+---
+import MuseumWorkCard from "@components/MuseumWorkCard.astro";
+import { getWorkSearchText, type MuseumWork } from "@lib/museum";
+
+interface Props {
+  works: MuseumWork[];
+}
+
+const { works } = Astro.props;
+const sortedWorks = [...works].sort((a, b) => {
+  const yearA = a.creation.latestYear ?? -1;
+  const yearB = b.creation.latestYear ?? -1;
+  return yearB - yearA || a.publicSlug.localeCompare(b.publicSlug, "ru");
+});
+
+const decadeFor = (work: MuseumWork) => work.creation.earliestYear
+  ? `${Math.floor(work.creation.earliestYear / 10) * 10}`
+  : "unknown";
+const decades = Array.from(new Set(works.map(decadeFor))).sort((a, b) => {
+  if (a === "unknown") return 1;
+  if (b === "unknown") return -1;
+  return Number(b) - Number(a);
+});
+
+const genreLabels: Record<string, string> = {
+  landscape: "Пейзаж",
+  "still life": "Натюрморт",
+  interior: "Интерьер",
+  cityscape: "Город",
+  portrait: "Портрет"
+};
+const publicGenre = (genre: string) => ["seascape", "architectural landscape"].includes(genre) ? "landscape" : genre;
+const genres = Array.from(new Set(works.flatMap((work) => work.subjects.genre.map(publicGenre))))
+  .filter((genre) => genreLabels[genre])
+  .sort((a, b) => genreLabels[a].localeCompare(genreLabels[b], "ru"));
+---
+
+<section class="catalog-browser" data-catalog-browser>
+  <button
+    class="catalog-browser__filter-toggle"
+    type="button"
+    aria-controls="catalog-filter-panel"
+    aria-expanded="false"
+    data-catalog-filter-toggle
+  >Фильтры</button>
+
+  <div class="catalog-browser__toolbar" id="catalog-filter-panel" aria-label="Фильтры каталога">
+    <button class="catalog-browser__filter-close" type="button" data-catalog-filter-close>Закрыть</button>
+    <div class="catalog-browser__types" role="group" aria-label="Тип работы">
+      <button type="button" data-type="all" aria-pressed="true">Все <span>{works.length}</span></button>
+      <button type="button" data-type="painting" aria-pressed="false">Живопись <span>{works.filter((work) => work.objectWorkType === "painting").length}</span></button>
+      <button type="button" data-type="work on paper" aria-pressed="false">На бумаге <span>{works.filter((work) => work.objectWorkType === "work on paper").length}</span></button>
+    </div>
+
+    <label class="catalog-browser__search">
+      <span>Поиск</span>
+      <input type="search" placeholder="Введите название" data-catalog-search />
+    </label>
+
+    <label>
+      <span>Период</span>
+      <select data-catalog-decade>
+        <option value="all">Все годы</option>
+        {decades.map((decade) => (
+          <option value={decade}>{decade === "unknown" ? "Без установленного года" : `${decade}-е`}</option>
+        ))}
+      </select>
+    </label>
+
+    <label>
+      <span>Тема</span>
+      <select data-catalog-genre>
+        <option value="all">Все темы</option>
+        {genres.map((genre) => <option value={genre}>{genreLabels[genre]}</option>)}
+      </select>
+    </label>
+  </div>
+
+  <div class="catalog-browser__status" aria-live="polite">
+    <p><span data-catalog-count>{works.length}</span> <span data-catalog-count-label>работ</span></p>
+    <button type="button" data-catalog-reset hidden>Сбросить фильтры</button>
+  </div>
+
+  <div class="catalog-browser__grid" data-catalog-grid>
+    {sortedWorks.map((work) => (
+      <article
+        data-catalog-item
+        data-type={work.objectWorkType}
+        data-decade={decadeFor(work)}
+        data-genres={work.subjects.genre.map(publicGenre).join("|")}
+        data-search={getWorkSearchText(work)}
+      >
+        <MuseumWorkCard work={work} />
+      </article>
+    ))}
+  </div>
+
+  <button class="catalog-browser__more" type="button" data-catalog-more hidden>Показать ещё</button>
+  <p class="catalog-browser__empty" data-catalog-empty hidden>Работ с такими параметрами нет.</p>
+</section>
+
+<script>
+  const roots = document.querySelectorAll<HTMLElement>("[data-catalog-browser]");
+
+  roots.forEach((root) => {
+    if (root.dataset.bound === "true") return;
+    root.dataset.bound = "true";
+    const items = Array.from(root.querySelectorAll<HTMLElement>("[data-catalog-item]"));
+    const typeButtons = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-type]"));
+    const search = root.querySelector<HTMLInputElement>("[data-catalog-search]");
+    const decade = root.querySelector<HTMLSelectElement>("[data-catalog-decade]");
+    const genre = root.querySelector<HTMLSelectElement>("[data-catalog-genre]");
+    const count = root.querySelector<HTMLElement>("[data-catalog-count]");
+    const label = root.querySelector<HTMLElement>("[data-catalog-count-label]");
+    const empty = root.querySelector<HTMLElement>("[data-catalog-empty]");
+    const reset = root.querySelector<HTMLButtonElement>("[data-catalog-reset]");
+    const more = root.querySelector<HTMLButtonElement>("[data-catalog-more]");
+    const filterToggle = root.querySelector<HTMLButtonElement>("[data-catalog-filter-toggle]");
+    const filterClose = root.querySelector<HTMLButtonElement>("[data-catalog-filter-close]");
+    const mobileQuery = window.matchMedia("(max-width: 620px)");
+    const pageSize = 30;
+    let activeType = "all";
+    let visibleLimit = pageSize;
+
+    const wordForCount = (value: number) => {
+      if (value % 10 === 1 && value % 100 !== 11) return "работа";
+      if ([2, 3, 4].includes(value % 10) && ![12, 13, 14].includes(value % 100)) return "работы";
+      return "работ";
+    };
+
+    const setFiltersOpen = (open: boolean) => {
+      root.dataset.filtersOpen = String(open);
+      filterToggle?.setAttribute("aria-expanded", String(open));
+      document.documentElement.classList.toggle("catalog-filters-open", open);
+      if (!open) filterToggle?.focus();
+    };
+
+    const apply = (resetPage = false) => {
+      if (resetPage) visibleLimit = pageSize;
+      const query = search?.value.trim().toLocaleLowerCase("ru-RU") ?? "";
+      const activeDecade = decade?.value ?? "all";
+      const activeGenre = genre?.value ?? "all";
+      let matched = 0;
+      let shown = 0;
+
+      items.forEach((item) => {
+        const matches = (activeType === "all" || item.dataset.type === activeType) &&
+          (activeDecade === "all" || item.dataset.decade === activeDecade) &&
+          (activeGenre === "all" || (item.dataset.genres ?? "").split("|").includes(activeGenre)) &&
+          (!query || (item.dataset.search ?? "").includes(query));
+        if (matches) matched += 1;
+        const withinMobilePage = !mobileQuery.matches || shown < visibleLimit;
+        item.hidden = !matches || !withinMobilePage;
+        if (matches && withinMobilePage) shown += 1;
+      });
+
+      if (count) count.textContent = String(matched);
+      if (label) label.textContent = wordForCount(matched);
+      if (empty) empty.hidden = matched !== 0;
+      if (reset) reset.hidden = activeType === "all" && activeDecade === "all" && activeGenre === "all" && !query;
+      if (more) {
+        const remaining = Math.max(0, matched - shown);
+        more.hidden = !mobileQuery.matches || remaining === 0;
+        more.textContent = remaining > pageSize ? `Показать ещё ${pageSize}` : `Показать ещё ${remaining}`;
+      }
+    };
+
+    typeButtons.forEach((button) => button.addEventListener("click", () => {
+      activeType = button.dataset.type ?? "all";
+      typeButtons.forEach((candidate) => candidate.setAttribute("aria-pressed", String(candidate === button)));
+      apply(true);
+    }));
+    search?.addEventListener("input", () => apply(true));
+    decade?.addEventListener("change", () => apply(true));
+    genre?.addEventListener("change", () => apply(true));
+    reset?.addEventListener("click", () => {
+      activeType = "all";
+      typeButtons.forEach((button, index) => button.setAttribute("aria-pressed", String(index === 0)));
+      if (search) search.value = "";
+      if (decade) decade.value = "all";
+      if (genre) genre.value = "all";
+      apply(true);
+    });
+    more?.addEventListener("click", () => {
+      visibleLimit += pageSize;
+      apply();
+    });
+    filterToggle?.addEventListener("click", () => setFiltersOpen(true));
+    filterClose?.addEventListener("click", () => setFiltersOpen(false));
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && root.dataset.filtersOpen === "true") setFiltersOpen(false);
+    });
+    mobileQuery.addEventListener("change", () => {
+      setFiltersOpen(false);
+      apply(true);
+    });
+    root.dataset.catalogReady = "true";
+    apply(true);
+  });
+</script>
+
+<style>
+  .catalog-browser {
+    padding: 0 var(--gutter) clamp(120px, 14vw, 220px);
+  }
+
+  .catalog-browser__filter-toggle,
+  .catalog-browser__filter-close,
+  .catalog-browser__more {
+    display: none;
+  }
+
+  .catalog-browser__toolbar {
+    position: sticky;
+    top: 64px;
+    z-index: 12;
+    display: grid;
+    grid-template-columns: minmax(320px, 1.3fr) minmax(220px, 0.9fr) auto auto;
+    gap: 22px;
+    align-items: end;
+    padding: 20px 0;
+    background: rgba(242, 239, 229, 0.94);
+    border-bottom: 1px solid var(--line);
+    backdrop-filter: blur(14px);
+  }
+
+  .catalog-browser__types {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .catalog-browser__types button,
+  .catalog-browser__status button {
+    position: relative;
+    padding: 10px 0;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid transparent;
+    cursor: pointer;
+    font: 600 10px/1 var(--sans);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.5;
+  }
+
+  .catalog-browser__types button[aria-pressed="true"] {
+    border-color: var(--accent);
+    opacity: 1;
+  }
+
+  .catalog-browser__types button span {
+    margin-left: 6px;
+    opacity: 0.55;
+  }
+
+  .catalog-browser__toolbar label:not(.catalog-browser__search) {
+    display: grid;
+    gap: 5px;
+  }
+
+  .catalog-browser__toolbar label > span {
+    color: var(--ink-soft);
+    font: 600 8px/1 var(--sans);
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+  }
+
+  .catalog-browser__more[hidden] {
+    display: none;
+  }
+
+  .catalog-browser input,
+  .catalog-browser select {
+    width: 100%;
+    min-height: 38px;
+    padding: 8px 0;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    border-radius: 0;
+    font: 400 13px/1.2 var(--sans);
+  }
+
+  .catalog-browser input:focus,
+  .catalog-browser select:focus {
+    border-color: var(--ink);
+  }
+
+  .catalog-browser__status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 110px;
+  }
+
+  .catalog-browser__status p {
+    margin: 0;
+    font: 400 14px/1 var(--sans);
+  }
+
+  .catalog-browser__status p span:first-child {
+    font: 400 34px/1 var(--serif);
+  }
+
+  .catalog-browser__status button {
+    border-bottom: 1px solid currentColor;
+    opacity: 1;
+  }
+
+  .catalog-browser__grid {
+    columns: 3;
+    column-gap: clamp(22px, 3.6vw, 64px);
+  }
+
+  [data-catalog-item][hidden] {
+    display: none;
+  }
+
+  .catalog-browser__empty {
+    min-height: 40svh;
+    margin: 0;
+    padding-top: 100px;
+    font: 400 clamp(34px, 5vw, 70px)/1 var(--serif);
+    letter-spacing: -0.05em;
+  }
+
+  .catalog-browser__more {
+    width: 100%;
+    margin-top: 12px;
+    padding: 18px 20px;
+    color: var(--white);
+    background: var(--ink);
+    border: 0;
+    cursor: pointer;
+    font: 600 10px/1 var(--sans);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 1000px) {
+    .catalog-browser__toolbar {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .catalog-browser__types,
+    .catalog-browser__search {
+      grid-column: 1 / -1;
+    }
+
+    .catalog-browser__grid {
+      columns: 2;
+    }
+  }
+
+  @media (max-width: 620px) {
+    .catalog-browser {
+      padding-inline: 20px;
+    }
+
+    .catalog-browser__toolbar {
+      position: relative;
+      top: auto;
+      grid-template-columns: 1fr;
+      padding-block: 24px;
+    }
+
+    .catalog-browser[data-catalog-ready="true"] .catalog-browser__filter-toggle {
+      position: sticky;
+      top: 76px;
+      z-index: 24;
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      margin-bottom: 18px;
+      padding: 15px 18px;
+      color: var(--white);
+      background: rgba(36, 36, 31, 0.94);
+      border: 0;
+      cursor: pointer;
+      font: 600 10px/1 var(--sans);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      backdrop-filter: blur(14px);
+    }
+
+    .catalog-browser[data-catalog-ready="true"] .catalog-browser__toolbar {
+      position: fixed;
+      inset: 64px 0 0;
+      z-index: 70;
+      align-content: start;
+      gap: 28px;
+      padding: 24px 20px 50px;
+      overflow-y: auto;
+      visibility: hidden;
+      background: var(--paper);
+      opacity: 0;
+      transform: translateY(-16px);
+      transition: opacity 200ms ease, transform 260ms ease, visibility 200ms ease;
+    }
+
+    .catalog-browser[data-filters-open="true"] .catalog-browser__toolbar {
+      visibility: visible;
+      opacity: 1;
+      transform: none;
+    }
+
+    .catalog-browser[data-catalog-ready="true"] .catalog-browser__filter-close {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0 18px;
+      background: transparent;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      cursor: pointer;
+      font: 600 10px/1 var(--sans);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .catalog-browser__filter-close::after {
+      content: "×";
+      font-size: 18px;
+      font-weight: 400;
+    }
+
+    .catalog-browser__types,
+    .catalog-browser__search {
+      grid-column: auto;
+    }
+
+    .catalog-browser__types {
+      flex-wrap: wrap;
+      gap: 10px 24px;
+    }
+
+    .catalog-browser__types button {
+      flex: 0 0 auto;
+    }
+
+    .catalog-browser__grid {
+      columns: 1;
+    }
+
+    .catalog-browser__more {
+      display: block;
+    }
+  }
+</style>

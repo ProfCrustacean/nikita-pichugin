@@ -1,0 +1,164 @@
+---
+import {
+  getPreviewPath,
+  getPrimaryAsset,
+  getPublicTitle,
+  hasCataloguerDescriptiveTitle,
+  getWorkCardQualifier,
+  getWorkDate,
+  getWorkHref,
+  type MuseumWork
+} from "@lib/museum";
+
+interface Props {
+  work: MuseumWork;
+  compact?: boolean;
+}
+
+const { work, compact = false } = Astro.props;
+const asset = getPrimaryAsset(work);
+const editorialTitle = work.recordType === "artwork" && hasCataloguerDescriptiveTitle(work);
+const publicTitle = getPublicTitle(work);
+const qualifier = getWorkCardQualifier(work);
+---
+
+<a class:list={["museum-work-card", { "museum-work-card--compact": compact }]} href={getWorkHref(work)}>
+  <figure>
+    <div class="museum-work-card__image">
+      <img
+        src={getPreviewPath(asset)}
+        alt=""
+        width={asset.previewWidthPx}
+        height={asset.previewHeightPx}
+        loading="lazy"
+      />
+      <span aria-hidden="true">Открыть</span>
+    </div>
+    <figcaption>
+      <div>
+        {compact ? <h3>{publicTitle}</h3> : <h2>{publicTitle}</h2>}
+        {editorialTitle && <small>Описательное название</small>}
+        {qualifier && <small class="museum-work-card__qualifier">{qualifier}</small>}
+      </div>
+      <p>{getWorkDate(work)}</p>
+    </figcaption>
+  </figure>
+</a>
+
+<style>
+  .museum-work-card {
+    display: block;
+    break-inside: avoid;
+    margin-bottom: clamp(48px, 6vw, 88px);
+  }
+
+  figure {
+    margin: 0;
+  }
+
+  .museum-work-card__image {
+    position: relative;
+    overflow: hidden;
+    background: var(--paper-deep);
+  }
+
+  img {
+    width: 100%;
+    transition: transform 750ms cubic-bezier(0.2, 0.7, 0.2, 1), filter 280ms ease;
+  }
+
+  .museum-work-card__image > span {
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+    padding: 9px 11px;
+    color: var(--white);
+    font: 600 8px/1 var(--sans);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    background: rgba(28, 29, 24, 0.72);
+    border-radius: 999px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 200ms ease, transform 240ms ease;
+    backdrop-filter: blur(8px);
+  }
+
+  .museum-work-card:hover img,
+  .museum-work-card:focus-visible img {
+    filter: saturate(1.03);
+    transform: scale(1.012);
+  }
+
+  .museum-work-card:hover .museum-work-card__image > span,
+  .museum-work-card:focus-visible .museum-work-card__image > span {
+    opacity: 1;
+    transform: none;
+  }
+
+  figcaption {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 18px;
+    align-items: start;
+    padding-top: 14px;
+  }
+
+  h2,
+  h3,
+  p,
+  small {
+    margin: 0;
+  }
+
+  h2,
+  h3 {
+    font: 400 clamp(18px, 1.55vw, 25px)/1.15 var(--serif);
+    letter-spacing: -0.025em;
+  }
+
+  p {
+    color: var(--ink-soft);
+    font: 600 9px/1.55 var(--sans);
+    letter-spacing: 0.11em;
+    text-align: right;
+    text-transform: uppercase;
+  }
+
+  small {
+    display: block;
+    padding-top: 6px;
+    color: var(--ink-soft);
+    font: 500 9px/1.35 var(--sans);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .museum-work-card__qualifier {
+    letter-spacing: 0.04em;
+    text-transform: none;
+  }
+
+  .museum-work-card--compact {
+    margin-bottom: 34px;
+  }
+
+  .museum-work-card--compact figcaption {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .museum-work-card--compact p {
+    text-align: left;
+  }
+
+  @media (max-width: 620px) {
+    .museum-work-card {
+      margin-bottom: 58px;
+    }
+
+    .museum-work-card__image > span {
+      display: none;
+    }
+  }
+</style>

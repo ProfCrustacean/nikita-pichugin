@@ -1,9 +1,0 @@
----
-import BaseLayout from "@layouts/BaseLayout.astro";
-import WorksGallery from "@components/WorksGallery";
-import { siteContent } from "@lib/content";
----
-
-<BaseLayout title="Работы">
-  <WorksGallery client:load artworks={siteContent.artworks} titleMode="normal" standalone />
-</BaseLayout>

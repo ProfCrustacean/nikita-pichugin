@@ -98,7 +98,7 @@ async function main() {
     ownerSlug: "nikita-pichugin",
     index: 0,
     alt: "Никита Пичугин в мастерской",
-    caption: "Фотография художника со старой главной страницы"
+    caption: "Портрет художника"
   });
   const intro = extractIntro(home.content?.rendered || "", homeHtml);
   const virtualTourUrl = extractVirtualTourUrl(home.content?.rendered || "", homeHtml);
@@ -286,7 +286,7 @@ async function parseHomeGallery(homeHtml) {
 
   return {
     title: "Лента на главной",
-    summary: "25 изображений из публичной ленты старой главной страницы.",
+    summary: "25 изображений из публичной галереи художника.",
     images: localized
   };
 }

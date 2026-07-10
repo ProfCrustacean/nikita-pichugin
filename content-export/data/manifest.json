@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.2.0",
+  "sourceBaseUrl": "https://nikitapichugin.ru",
+  "snapshotId": "20260710T090917Z",
+  "generatedAt": "2026-07-10T09:09:17.317Z",
+  "counts": {
+    "assets": 295,
+    "works": 270,
+    "artworkWorks": 183,
+    "photographicWorks": 87,
+    "placements": 337,
+    "authorities": 84,
+    "needsReview": 232,
+    "needsOwnerInput": 270
+  },
+  "sourceBaselines": {
+    "homeFeed": 25,
+    "homeArchive2011To2020": 106,
+    "homeArchive2006To2010": 16,
+    "homeArchive1997To2005": 2,
+    "homeUnsorted": 19,
+    "portfolios": 24,
+    "portfolioVisualReferences": 81,
+    "photoWorkIncludeIds": 88,
+    "photoWorksResolved": 87,
+    "wordpressMediaFetched": 683
+  },
+  "errors": [],
+  "warnings": [
+    "Photoworks page references unavailable WordPress media IDs: 15525"
+  ]
+}

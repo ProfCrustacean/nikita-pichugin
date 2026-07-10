@@ -1,0 +1,775 @@
+---
+interface JourneyWork {
+  title: string;
+  image: string;
+  alt: string;
+  aspect: number;
+  width: number;
+  height: number;
+  href: string;
+}
+
+interface JourneyScene {
+  image: string;
+  alt: string;
+  position?: string;
+  width: number;
+  height: number;
+}
+
+interface Props {
+  id?: string;
+  works: JourneyWork[];
+  scenes: JourneyScene[];
+}
+
+const { id = "works", works, scenes } = Astro.props;
+---
+
+<section
+  id={id}
+  class="landscape-journey"
+  data-landscape-journey
+  data-landscape-status="loading"
+  data-works={JSON.stringify(works)}
+  style={`--journey-length: ${Math.max(works.length + 1, 7)}`}
+  aria-label="Дорога через пейзажи к мастерской художника"
+>
+  <div class="landscape-journey__sticky">
+    <div class="landscape-journey__scenes" aria-hidden="true">
+      {scenes.map((scene, index) => (
+        <div class="landscape-journey__scene" data-journey-scene data-scene-index={index}>
+          <img
+            src={index === 0 ? scene.image : undefined}
+            data-src={index === 0 ? undefined : scene.image}
+            alt={scene.alt}
+            width={scene.width}
+            height={scene.height}
+            style={`object-position: ${scene.position ?? "50% 50%"}`}
+          />
+        </div>
+      ))}
+    </div>
+
+    <div class="landscape-journey__air" aria-hidden="true"></div>
+    <div class="landscape-journey__road-light" data-road-light aria-hidden="true"></div>
+
+    <div class="landscape-journey__works">
+      {works.map((work, index) => (
+        <figure
+          class:list={[
+            "landscape-journey__work",
+            { "is-portrait": work.aspect < 0.9, "is-panorama": work.aspect > 2 }
+          ]}
+          data-journey-work
+          data-work-index={index}
+          data-side={index % 2 === 0 ? "-1" : "1"}
+          style={`--work-aspect: ${work.aspect}`}
+        >
+          <img src={work.image} alt={work.alt} width={work.width} height={work.height} loading="lazy" />
+        </figure>
+      ))}
+    </div>
+
+    <div class="landscape-journey__intro" data-journey-intro>
+      <p class="landscape-journey__kicker">Дорога к мастерской</p>
+      <h2>Идти на свет.</h2>
+      <p>Листайте вниз. Картины появятся вдоль дороги.</p>
+      <span aria-hidden="true"></span>
+    </div>
+
+    <div class="landscape-journey__caption" data-journey-caption>
+      <p data-journey-number>01</p>
+      <h2 data-journey-title>{works[0]?.title}</h2>
+      <a data-journey-open href={works[0]?.href}>Смотреть работу</a>
+    </div>
+
+    <div class="landscape-journey__outro" data-journey-outro>
+      <p class="landscape-journey__kicker">У порога</p>
+      <h2>Дальше —<br />мастерская.</h2>
+    </div>
+
+    <div class="landscape-journey__route" aria-hidden="true">
+      <span>Поле</span>
+      <i><b data-journey-progress></b></i>
+      <span>Мастерская</span>
+    </div>
+  </div>
+
+  <div class="landscape-journey__fallback">
+    <header>
+      <p class="landscape-journey__kicker">Дорога к мастерской</p>
+      <h2>Избранные работы</h2>
+    </header>
+    <div class="landscape-journey__fallback-grid">
+      {works.map((work) => (
+        <a href={work.href}>
+          <figure>
+            <img src={work.image} alt="" width={work.width} height={work.height} loading="lazy" />
+            <figcaption class="landscape-journey__fallback-caption">
+              <h3>{work.title}</h3>
+            </figcaption>
+          </figure>
+        </a>
+      ))}
+    </div>
+  </div>
+
+  <noscript>
+    <style>
+      .landscape-journey { height: auto !important; }
+      .landscape-journey__sticky { display: none !important; }
+      .landscape-journey__fallback { display: block !important; }
+    </style>
+  </noscript>
+</section>
+
+<script>
+  interface JourneyWork {
+    title: string;
+    image: string;
+    alt: string;
+    aspect: number;
+    width: number;
+    height: number;
+    href: string;
+  }
+
+  const clamp = (value: number, minimum = 0, maximum = 1) =>
+    Math.min(maximum, Math.max(minimum, value));
+
+  const mix = (from: number, to: number, amount: number) => from + (to - from) * amount;
+
+  const smoothstep = (edge0: number, edge1: number, value: number) => {
+    const amount = clamp((value - edge0) / (edge1 - edge0));
+    return amount * amount * (3 - 2 * amount);
+  };
+
+  const initializeJourney = (root: HTMLElement) => {
+    if (root.dataset.landscapeBound === "true") return;
+    root.dataset.landscapeBound = "true";
+
+    const works = root.dataset.works ? JSON.parse(root.dataset.works) as JourneyWork[] : [];
+    const workElements = Array.from(root.querySelectorAll<HTMLElement>("[data-journey-work]"));
+    const sceneElements = Array.from(root.querySelectorAll<HTMLElement>("[data-journey-scene]"));
+    const intro = root.querySelector<HTMLElement>("[data-journey-intro]");
+    const outro = root.querySelector<HTMLElement>("[data-journey-outro]");
+    const caption = root.querySelector<HTMLElement>("[data-journey-caption]");
+    const captionNumber = root.querySelector<HTMLElement>("[data-journey-number]");
+    const captionTitle = root.querySelector<HTMLElement>("[data-journey-title]");
+    const captionLink = root.querySelector<HTMLAnchorElement>("[data-journey-open]");
+    const progress = root.querySelector<HTMLElement>("[data-journey-progress]");
+    const roadLight = root.querySelector<HTMLElement>("[data-road-light]");
+    const header = document.querySelector<HTMLElement>("[data-site-header]");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (reducedMotion || !works.length || !sceneElements.length) {
+      root.dataset.landscapeStatus = "fallback";
+      return;
+    }
+
+    let activeIndex = -1;
+    let animationFrame = 0;
+
+    const render = () => {
+      animationFrame = 0;
+      const bounds = root.getBoundingClientRect();
+      const distance = Math.max(1, root.offsetHeight - window.innerHeight);
+      const journeyProgress = clamp(-bounds.top / distance);
+      const mobile = window.innerWidth <= 720;
+
+      root.style.setProperty("--journey-progress", String(journeyProgress));
+      progress?.style.setProperty("transform", `scaleX(${journeyProgress})`);
+      roadLight?.style.setProperty(
+        "transform",
+        `translate3d(${mix(-2, 2, journeyProgress)}vw, ${mix(0, 5, journeyProgress)}vh, 0) scale(${mix(1, 1.24, journeyProgress)})`
+      );
+
+      const scenePosition = journeyProgress * (sceneElements.length - 1);
+      const sceneBase = Math.floor(scenePosition);
+      const sceneBlend = smoothstep(0.08, 0.92, scenePosition - sceneBase);
+
+      sceneElements.forEach((scene, index) => {
+        const opacity = index <= sceneBase ? 1 : index === sceneBase + 1 ? sceneBlend : 0;
+        const sceneLocal = clamp(scenePosition - index + 1);
+        scene.style.opacity = String(opacity);
+        const image = scene.querySelector<HTMLElement>("img");
+        if (index <= sceneBase + 1 && image?.dataset.src && !image.getAttribute("src")) {
+          image.setAttribute("src", image.dataset.src);
+        }
+        image?.style.setProperty(
+          "transform",
+          `translate3d(${(index % 2 === 0 ? -1 : 1) * sceneLocal * 1.8}vw, ${sceneLocal * 1.5}vh, 0) scale(${1.035 + sceneLocal * 0.085})`
+        );
+      });
+
+      intro?.style.setProperty("opacity", String(1 - smoothstep(0.025, 0.105, journeyProgress)));
+      const introShift = mix(0, -4, smoothstep(0.02, 0.12, journeyProgress));
+      intro?.style.setProperty(
+        "transform",
+        mobile
+          ? `translate3d(0, ${introShift}vh, 0)`
+          : `translate3d(0, calc(-50% + ${introShift}vh), 0)`
+      );
+
+      const outroOpacity = smoothstep(0.865, 0.935, journeyProgress);
+      outro?.style.setProperty("opacity", String(outroOpacity));
+      outro?.style.setProperty(
+        "transform",
+        `translate3d(0, calc(-50% + ${mix(4, 0, outroOpacity)}vh), 0)`
+      );
+
+      const firstCenter = 0.145;
+      const lastCenter = 0.79;
+      const centerStep = works.length > 1 ? (lastCenter - firstCenter) / (works.length - 1) : 0;
+      const workOpacities: number[] = [];
+      let nearestIndex = 0;
+      let nearestDistance = Number.POSITIVE_INFINITY;
+
+      workElements.forEach((element, index) => {
+        const center = firstCenter + centerStep * index;
+        const local = (journeyProgress - center) / (mobile ? 0.115 : 0.125);
+        const side = Number(element.dataset.side ?? 1);
+        const approach = smoothstep(-1.12, 0, local);
+        const departure = smoothstep(0, 1.02, local);
+        const opacity = smoothstep(-1.18, -0.74, local) * (1 - smoothstep(0.22, 0.76, local));
+        const scale = 0.19 + approach * 0.73 + departure * (mobile ? 0.38 : 0.44);
+        const focusX = mobile ? 0 : side * 16;
+        const x = local <= 0
+          ? mix(side * (mobile ? 2 : 3), focusX, approach)
+          : mix(focusX, side * (mobile ? 66 : 58), departure);
+        const y = local <= 0 ? mix(-8, -3, approach) : mix(-3, 15, departure);
+        const rotateY = local <= 0
+          ? side * (mobile ? 0 : -15) * (1 - approach)
+          : side * (mobile ? 0 : 9) * departure;
+        const rotateZ = side * (-1.2 * (1 - approach) + 1.1 * departure);
+        const blur = (1 - approach) * 1.2 + departure * 2.8;
+
+        workOpacities.push(opacity);
+        element.style.opacity = String(opacity);
+        element.style.filter = `blur(${blur}px) saturate(${0.84 + approach * 0.16})`;
+        element.style.transform = `translate3d(calc(-50% + ${x}vw), calc(-50% + ${y}vh), 0) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg) scale(${scale})`;
+
+        const distanceFromCenter = Math.abs(journeyProgress - center);
+        if (distanceFromCenter < nearestDistance) {
+          nearestDistance = distanceFromCenter;
+          nearestIndex = index;
+        }
+      });
+
+      if (nearestIndex !== activeIndex) {
+        activeIndex = nearestIndex;
+        const activeWork = works[activeIndex];
+        if (captionNumber) captionNumber.textContent = String(activeIndex + 1).padStart(2, "0");
+        if (captionTitle) captionTitle.textContent = activeWork.title;
+        if (captionLink) captionLink.href = activeWork.href;
+        root.dataset.activeSide = workElements[activeIndex]?.dataset.side ?? "1";
+        caption?.classList.remove("is-changing");
+        void caption?.offsetWidth;
+        caption?.classList.add("is-changing");
+      }
+
+      const captionOpacity = journeyProgress < 0.1 || journeyProgress > 0.88
+        ? 0
+        : Math.min(1, (workOpacities[nearestIndex] ?? 0) * 1.1);
+      caption?.style.setProperty("opacity", String(captionOpacity));
+      root.dataset.landscapeChapter = journeyProgress > 0.86 ? "studio" : "road";
+
+      const journeyIsActive = bounds.top <= 76 && bounds.bottom > window.innerHeight * 0.55;
+      header?.classList.toggle("is-journey-active", journeyIsActive);
+    };
+
+    const requestRender = () => {
+      if (!animationFrame) animationFrame = window.requestAnimationFrame(render);
+    };
+
+    window.addEventListener("scroll", requestRender, { passive: true });
+    window.addEventListener("resize", requestRender, { passive: true });
+    render();
+    root.dataset.landscapeStatus = "ready";
+  };
+
+  document.querySelectorAll<HTMLElement>("[data-landscape-journey]").forEach(initializeJourney);
+</script>
+
+<style>
+  .landscape-journey {
+    --journey-progress: 0;
+    position: relative;
+    height: calc(var(--journey-length) * 100svh);
+    color: #fffaf0;
+    background: #8a9075;
+  }
+
+  .landscape-journey__sticky {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    overflow: hidden;
+    background: #8a9075;
+    perspective: 1600px;
+    isolation: isolate;
+  }
+
+  .landscape-journey__scenes,
+  .landscape-journey__scene,
+  .landscape-journey__scene img,
+  .landscape-journey__air {
+    position: absolute;
+    inset: 0;
+  }
+
+  .landscape-journey__scenes {
+    z-index: -5;
+    overflow: hidden;
+    background: #8a9075;
+  }
+
+  .landscape-journey__scene {
+    opacity: 0;
+    will-change: opacity;
+  }
+
+  .landscape-journey__scene:first-child {
+    opacity: 1;
+  }
+
+  .landscape-journey__scene img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(0.86) brightness(0.9) contrast(0.94);
+    will-change: transform;
+  }
+
+  .landscape-journey__air {
+    z-index: -3;
+    pointer-events: none;
+    background:
+      linear-gradient(180deg, rgba(221, 232, 224, 0.12), transparent 38%),
+      linear-gradient(0deg, rgba(25, 29, 22, 0.48), transparent 48%),
+      radial-gradient(circle at 50% 42%, rgba(245, 242, 218, 0.28), transparent 34%),
+      linear-gradient(90deg, rgba(24, 30, 22, 0.12), transparent 26%, transparent 74%, rgba(24, 30, 22, 0.1));
+  }
+
+  .landscape-journey[data-landscape-chapter="studio"] .landscape-journey__air {
+    background:
+      linear-gradient(180deg, rgba(190, 195, 189, 0.1), transparent 34%),
+      linear-gradient(0deg, rgba(24, 25, 23, 0.62), transparent 58%),
+      radial-gradient(circle at 50% 38%, rgba(235, 220, 192, 0.16), transparent 38%);
+  }
+
+  .landscape-journey__road-light {
+    position: absolute;
+    right: -18%;
+    bottom: -20%;
+    left: -18%;
+    z-index: -2;
+    height: 78%;
+    opacity: 0.18;
+    clip-path: polygon(48.4% 0, 51.6% 0, 71% 100%, 28% 100%);
+    background: linear-gradient(180deg, rgba(255, 248, 210, 0.08), rgba(255, 246, 211, 0.75));
+    filter: blur(16px);
+    transform-origin: 50% 0;
+    will-change: transform;
+  }
+
+  .landscape-journey__works {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    transform-style: preserve-3d;
+  }
+
+  .landscape-journey__work {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: min(38vw, 620px);
+    margin: 0;
+    padding: clamp(2px, 0.24vw, 4px);
+    opacity: 0;
+    background: rgba(246, 242, 231, 0.93);
+    border: 1px solid rgba(255, 255, 255, 0.62);
+    box-shadow:
+      0 2px 6px rgba(22, 26, 19, 0.16),
+      0 28px 72px rgba(20, 27, 19, 0.3);
+    transform: translate3d(-50%, -50%, 0) scale(0.2);
+    transform-origin: center;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    will-change: transform, opacity, filter;
+  }
+
+  .landscape-journey__work::after {
+    content: "";
+    position: absolute;
+    inset: 100% 7% auto;
+    height: 24px;
+    background: radial-gradient(ellipse, rgba(17, 22, 16, 0.22), transparent 70%);
+    filter: blur(9px);
+    transform: translateY(12px);
+  }
+
+  .landscape-journey__work.is-portrait {
+    width: min(27vw, 410px);
+  }
+
+  .landscape-journey__work.is-panorama {
+    width: min(56vw, 860px);
+  }
+
+  .landscape-journey__work img {
+    aspect-ratio: var(--work-aspect);
+    object-fit: cover;
+  }
+
+  .landscape-journey__intro,
+  .landscape-journey__outro {
+    position: absolute;
+    z-index: 4;
+    will-change: opacity, transform;
+  }
+
+  .landscape-journey__intro {
+    top: 50%;
+    left: clamp(22px, 5vw, 84px);
+    width: min(720px, 80vw);
+    transform: translateY(-50%);
+    text-shadow: 0 2px 28px rgba(18, 23, 17, 0.38);
+  }
+
+  .landscape-journey__intro h2,
+  .landscape-journey__outro h2 {
+    margin: 22px 0 30px;
+    font: 400 clamp(62px, 9vw, 144px)/0.86 Georgia, "Times New Roman", serif;
+    letter-spacing: -0.075em;
+  }
+
+  .landscape-journey__kicker {
+    margin: 0;
+    font: 600 9px/1.25 Arial, sans-serif;
+    letter-spacing: 0.19em;
+    text-transform: uppercase;
+  }
+
+  .landscape-journey__intro > p:last-of-type {
+    max-width: 310px;
+    margin: 0;
+    font: 500 12px/1.55 Arial, sans-serif;
+    letter-spacing: 0.04em;
+  }
+
+  .landscape-journey__intro > span {
+    position: relative;
+    display: block;
+    width: 1px;
+    height: 64px;
+    margin-top: 26px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.34);
+  }
+
+  .landscape-journey__intro > span::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #fffaf0;
+    animation: landscape-scroll-mark 1.8s ease-in-out infinite;
+  }
+
+  .landscape-journey__caption {
+    position: absolute;
+    bottom: clamp(58px, 8vh, 92px);
+    left: clamp(22px, 5vw, 84px);
+    z-index: 5;
+    display: grid;
+    grid-template-columns: 36px minmax(0, 400px);
+    gap: 8px 18px;
+    width: min(46vw, 520px);
+    opacity: 0;
+    color: #fffaf0;
+    text-shadow: 0 2px 22px rgba(18, 22, 16, 0.72);
+    will-change: opacity;
+  }
+
+  .landscape-journey[data-active-side="-1"] .landscape-journey__caption {
+    right: clamp(22px, 5vw, 84px);
+    left: auto;
+    text-align: right;
+  }
+
+  .landscape-journey__caption h2,
+  .landscape-journey__caption p,
+  .landscape-journey__caption a {
+    margin: 0;
+  }
+
+  .landscape-journey__caption h2 {
+    font: 400 clamp(34px, 4.2vw, 68px)/0.96 Georgia, "Times New Roman", serif;
+    letter-spacing: -0.055em;
+  }
+
+  .landscape-journey__caption p {
+    padding-top: 5px;
+    font: 600 9px/1.25 Arial, sans-serif;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .landscape-journey__caption p:last-child {
+    grid-column: 2;
+    opacity: 0.72;
+  }
+
+  .landscape-journey__caption a {
+    grid-column: 2;
+    justify-self: start;
+    padding-bottom: 5px;
+    border-bottom: 1px solid currentColor;
+    font: 600 9px/1 Arial, sans-serif;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    pointer-events: auto;
+  }
+
+  .landscape-journey[data-active-side="-1"] .landscape-journey__caption a {
+    justify-self: end;
+  }
+
+
+  .landscape-journey__caption.is-changing h2,
+  .landscape-journey__caption.is-changing p {
+    animation: landscape-caption-change 480ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .landscape-journey__outro {
+    top: 50%;
+    right: clamp(22px, 6vw, 100px);
+    width: min(780px, 82vw);
+    opacity: 0;
+    text-align: right;
+    transform: translateY(-50%);
+    text-shadow: 0 2px 32px rgba(16, 17, 16, 0.72);
+  }
+
+  .landscape-journey__outro h2 {
+    margin-bottom: 0;
+  }
+
+  .landscape-journey__route {
+    position: absolute;
+    top: 88px;
+    right: clamp(22px, 5vw, 84px);
+    left: clamp(22px, 5vw, 84px);
+    z-index: 6;
+    display: grid;
+    grid-template-columns: auto minmax(60px, 1fr) auto;
+    gap: 14px;
+    align-items: center;
+    font: 600 8px/1 Arial, sans-serif;
+    letter-spacing: 0.17em;
+    text-transform: uppercase;
+    text-shadow: 0 1px 12px rgba(19, 23, 17, 0.58);
+  }
+
+  .landscape-journey__route i {
+    height: 1px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  .landscape-journey__route b {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: #fffaf0;
+    transform: scaleX(0);
+    transform-origin: left;
+    will-change: transform;
+  }
+
+  .landscape-journey__fallback {
+    display: none;
+    padding: 110px clamp(20px, 6vw, 100px);
+    color: #26231d;
+    background: #f1ede2;
+  }
+
+  .landscape-journey__fallback header {
+    display: grid;
+    grid-template-columns: 0.7fr 1.3fr;
+    gap: 40px;
+    margin-bottom: 90px;
+  }
+
+  .landscape-journey__fallback header h2 {
+    margin: 0;
+    font: 400 clamp(48px, 8vw, 118px)/0.9 Georgia, "Times New Roman", serif;
+    letter-spacing: -0.065em;
+  }
+
+  .landscape-journey__fallback-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 100px 7vw;
+  }
+
+  .landscape-journey__fallback-grid figure {
+    margin: 0;
+  }
+
+  .landscape-journey__fallback-caption {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    margin-top: 14px;
+  }
+
+  .landscape-journey__fallback-caption h3,
+  .landscape-journey__fallback-caption p {
+    margin: 0;
+  }
+
+  .landscape-journey__fallback-caption h3 {
+    font: 400 clamp(18px, 1.6vw, 25px)/1.18 Georgia, "Times New Roman", serif;
+  }
+
+  .landscape-journey__fallback-caption p {
+    font: 600 9px/1 Arial, sans-serif;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    opacity: 0.58;
+  }
+
+  .landscape-journey[data-landscape-status="fallback"] {
+    height: auto;
+  }
+
+  .landscape-journey[data-landscape-status="fallback"] .landscape-journey__sticky {
+    display: none;
+  }
+
+  .landscape-journey[data-landscape-status="fallback"] .landscape-journey__fallback {
+    display: block;
+  }
+
+  :global(.sunlight-header.is-journey-active) {
+    color: #fffaf0;
+    background: linear-gradient(180deg, rgba(19, 24, 18, 0.48), rgba(19, 24, 18, 0));
+    border-color: transparent;
+    backdrop-filter: none;
+  }
+
+  :global(.sunday-header.is-journey-active) {
+    color: #fffaf0 !important;
+    background: linear-gradient(180deg, rgba(19, 24, 18, 0.48), rgba(19, 24, 18, 0));
+    border-color: transparent;
+    backdrop-filter: none;
+  }
+
+  @keyframes landscape-scroll-mark {
+    0% { transform: translateY(-100%); }
+    45%, 55% { transform: translateY(0); }
+    100% { transform: translateY(100%); }
+  }
+
+  @keyframes landscape-caption-change {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @media (max-width: 720px) {
+    .landscape-journey__scene img {
+      object-position: 56% 50% !important;
+    }
+
+    .landscape-journey__work,
+    .landscape-journey__work.is-portrait,
+    .landscape-journey__work.is-panorama {
+      width: min(80vw, 520px);
+    }
+
+    .landscape-journey__work.is-portrait {
+      width: min(58vw, 360px);
+    }
+
+    .landscape-journey__intro {
+      top: auto;
+      bottom: 92px;
+      width: calc(100% - 40px);
+      transform: none;
+    }
+
+    .landscape-journey__intro h2,
+    .landscape-journey__outro h2 {
+      margin-block: 18px 24px;
+      font-size: clamp(54px, 18vw, 88px);
+    }
+
+    .landscape-journey__intro > span {
+      height: 46px;
+      margin-top: 20px;
+    }
+
+    .landscape-journey__route {
+      top: 72px;
+      right: 20px;
+      left: 20px;
+    }
+
+    .landscape-journey__caption,
+    .landscape-journey[data-active-side="-1"] .landscape-journey__caption {
+      right: 20px;
+      bottom: 84px;
+      left: 20px;
+      grid-template-columns: 28px 1fr;
+      width: auto;
+      text-align: left;
+    }
+
+    .landscape-journey__caption h2 {
+      font-size: clamp(34px, 10vw, 52px);
+    }
+
+    .landscape-journey__caption p:last-child,
+
+    .landscape-journey__outro {
+      right: 20px;
+      width: calc(100% - 40px);
+    }
+
+    .landscape-journey__fallback {
+      padding: 90px 20px;
+    }
+
+    .landscape-journey__fallback header,
+    .landscape-journey__fallback-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .landscape-journey__fallback header {
+      gap: 32px;
+      margin-bottom: 70px;
+    }
+
+    .landscape-journey__fallback-grid {
+      gap: 72px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .landscape-journey {
+      height: auto;
+    }
+
+    .landscape-journey__sticky {
+      display: none;
+    }
+
+    .landscape-journey__fallback {
+      display: block;
+    }
+  }
+</style>

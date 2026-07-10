@@ -1,0 +1,307 @@
+{
+  "works": {
+    "portfolio:14356": {
+      "titleRu": "На мгновенье стало тихо",
+      "titleEn": "For a Moment It Became Quiet",
+      "reviewStatus": "verified"
+    },
+    "portfolio:14357": {
+      "titleRu": "Солнце августа",
+      "titleEn": "August Sun",
+      "reviewStatus": "verified"
+    },
+    "home.feed:15983": {
+      "titleRu": "Этюд",
+      "titleEn": "Study",
+      "reviewStatus": "verified"
+    },
+    "home.archive:https://nikitapichugin.ru/wp-content/uploads/2024/07/osennie-solncze-h.m.-40h90-2010.jpg": {
+      "titleRu": "Осеннее солнце",
+      "titleEn": "Autumn Sun",
+      "reviewStatus": "verified"
+    },
+    "home.archive:https://nikitapichugin.ru/wp-content/uploads/2024/07/reka-sura-50h70-k.m.-2011.jpg": {
+      "titleRu": "Река Сура",
+      "titleEn": "The Sura River",
+      "reviewStatus": "verified"
+    },
+    "home.archive:https://nikitapichugin.ru/wp-content/uploads/2024/07/banka-po-chernomu-50h70-k.m.-2014.jpg": {
+      "titleRu": "Банька по-чёрному",
+      "titleEn": "Smoke Sauna",
+      "reviewStatus": "verified"
+    },
+    "home.archive:https://nikitapichugin.ru/wp-content/uploads/2024/07/osen-na-sure-50h70-k.m.-2010.jpg": {
+      "titleRu": "Осень на Суре",
+      "titleEn": "Autumn on the Sura",
+      "reviewStatus": "verified"
+    },
+    "home.archive:https://nikitapichugin.ru/wp-content/uploads/2024/07/na-utro-vypal-sneg-h.m.-2017.jpg": {
+      "titleRu": "Наутро выпал снег",
+      "titleEn": "Snow Fell by Morning",
+      "reviewStatus": "verified"
+    },
+    "home.archive:https://nikitapichugin.ru/wp-content/uploads/2024/07/sneg-soshel-30h40-h.m.-2012.jpg": {
+      "titleRu": "Снег сошёл",
+      "titleEn": "The Snow Has Melted",
+      "reviewStatus": "verified"
+    },
+    "home.feed:16067": {
+      "titleRu": "Деревянный мостик через ручей",
+      "titleEn": "Wooden Footbridge over a Stream",
+      "descriptionRu": "Летний пейзаж с деревянным мостиком, перекинутым через узкий ручей среди густой зелени.",
+      "descriptionEn": "A summer landscape with a wooden footbridge crossing a narrow stream amid dense greenery.",
+      "subjects": { "genre": ["landscape"], "general": ["painting"], "specific": ["footbridge", "stream", "summer vegetation"], "season": "summer", "timeOfDay": null, "keywords": ["landscape", "footbridge", "stream", "summer"] },
+      "reviewStatus": "verified"
+    },
+    "home.feed:16095": {
+      "titleRu": "Деревенский двор с поленницей",
+      "titleEn": "Village Yard with a Woodpile",
+      "descriptionRu": "Летний деревенский пейзаж с хозяйственными постройками, сложенными дровами и церковью вдали.",
+      "descriptionEn": "A summer village landscape with outbuildings, stacked firewood, and a distant church.",
+      "subjects": { "genre": ["landscape"], "general": ["painting"], "specific": ["village yard", "woodpile", "church"], "season": "summer", "timeOfDay": null, "keywords": ["landscape", "village", "woodpile", "church"] },
+      "reviewStatus": "verified"
+    },
+    "home.feed:16060": {
+      "titleRu": "Зимний день в деревне",
+      "titleEn": "Winter Day in a Village",
+      "descriptionRu": "Панорамный зимний пейзаж с деревенскими домами, сугробами и протоптанной дорогой.",
+      "descriptionEn": "A panoramic winter landscape with village houses, snowdrifts, and a trodden road.",
+      "subjects": { "genre": ["landscape"], "general": ["painting"], "specific": ["village", "snow", "road"], "season": "winter", "timeOfDay": "day", "keywords": ["landscape", "village", "winter", "snow"] },
+      "reviewStatus": "verified"
+    },
+    "home.feed:16093": {
+      "titleRu": "Церковь за цветущими деревьями",
+      "titleEn": "Church behind Flowering Trees",
+      "descriptionRu": "Весенний пейзаж, в котором церковь видна сквозь цветущие деревья и густую зелень.",
+      "descriptionEn": "A spring landscape in which a church is seen through flowering trees and dense greenery.",
+      "subjects": { "genre": ["landscape"], "general": ["painting"], "specific": ["church", "flowering trees"], "season": "spring", "timeOfDay": "day", "keywords": ["landscape", "church", "spring", "blossom"] },
+      "reviewStatus": "verified"
+    },
+    "home.feed:16092": {
+      "titleRu": "Дорога к сельской церкви",
+      "titleEn": "Road to a Village Church",
+      "descriptionRu": "Летний сельский пейзаж с дорогой, ведущей между домами к церковной колокольне.",
+      "descriptionEn": "A summer rural landscape with a road leading between houses toward a church bell tower.",
+      "subjects": { "genre": ["landscape"], "general": ["painting"], "specific": ["village road", "church", "houses"], "season": "summer", "timeOfDay": "day", "keywords": ["landscape", "road", "church", "village"] },
+      "reviewStatus": "verified"
+    },
+    "home.feed:16071": {
+      "titleRu": "Полевой букет",
+      "titleEn": "Wildflower Bouquet",
+      "descriptionRu": "Натюрморт с пышным букетом полевых цветов, поставленным среди высокой летней травы.",
+      "descriptionEn": "A still life with a lush bouquet of wildflowers set amid tall summer grass.",
+      "subjects": { "genre": ["still life"], "general": ["painting"], "specific": ["wildflowers", "bouquet", "grass"], "season": "summer", "timeOfDay": null, "keywords": ["still life", "wildflowers", "bouquet"] },
+      "reviewStatus": "verified"
+    },
+    "home.feed:16073": {
+      "titleRu": "Весенняя оттепель в деревне",
+      "titleEn": "Spring Thaw in a Village",
+      "descriptionRu": "Ранневесенний деревенский пейзаж с остатками снега, лужами и обнажившейся землёй.",
+      "descriptionEn": "An early-spring village landscape with lingering snow, puddles, and exposed ground.",
+      "subjects": { "genre": ["landscape"], "general": ["painting"], "specific": ["village", "thaw", "puddles", "snow"], "season": "spring", "timeOfDay": "day", "keywords": ["landscape", "village", "spring thaw"] },
+      "reviewStatus": "verified"
+    },
+    "home.feed:16068": {
+      "titleRu": "Пионы на круглом столе",
+      "titleEn": "Peonies on a Round Table",
+      "descriptionRu": "Натюрморт с белыми и бордовыми пионами в вазе, поставленной на небольшой круглый стол.",
+      "descriptionEn": "A still life with white and burgundy peonies in a vase placed on a small round table.",
+      "subjects": { "genre": ["still life"], "general": ["painting"], "specific": ["peonies", "vase", "round table"], "season": null, "timeOfDay": null, "keywords": ["still life", "peonies", "flowers"] },
+      "reviewStatus": "verified"
+    },
+    "home.feed:16069": {
+      "titleRu": "Весенняя река",
+      "titleEn": "River in Spring",
+      "descriptionRu": "Весенний пейзаж с тёмной рекой, извивающейся между заснеженными берегами.",
+      "descriptionEn": "A spring landscape with a dark river winding between snow-covered banks.",
+      "subjects": { "genre": ["landscape"], "general": ["painting"], "specific": ["river", "snowy banks"], "season": "spring", "timeOfDay": "day", "keywords": ["landscape", "river", "spring", "snow"] },
+      "reviewStatus": "verified"
+    },
+    "home.feed:16065": {
+      "titleRu": "Зимний вид на храм",
+      "titleEn": "Winter View of a Church",
+      "descriptionRu": "Зимний городской пейзаж с заснеженными крышами и храмом, возникающим в туманной дали.",
+      "descriptionEn": "A winter townscape with snow-covered roofs and a church emerging in the misty distance.",
+      "subjects": { "genre": ["cityscape", "landscape"], "general": ["painting"], "specific": ["church", "rooftops", "snow"], "season": "winter", "timeOfDay": "day", "keywords": ["cityscape", "church", "winter", "snow"] },
+      "reviewStatus": "verified"
+    },
+    "home.feed:16063": {
+      "titleRu": "Букет сирени на стуле",
+      "titleEn": "Bouquet of Lilacs on a Chair",
+      "descriptionRu": "Натюрморт с букетом белой и лиловой сирени в тёмной вазе, поставленной на деревянный стул.",
+      "descriptionEn": "A still life with white and lilac blossoms in a dark vase placed on a wooden chair.",
+      "subjects": { "genre": ["still life"], "general": ["painting"], "specific": ["lilacs", "vase", "chair"], "season": "spring", "timeOfDay": null, "keywords": ["still life", "lilacs", "flowers"] },
+      "reviewStatus": "verified"
+    },
+    "home.feed:16061": {
+      "titleRu": "Зимняя дорога к церкви",
+      "titleEn": "Winter Road to a Church",
+      "descriptionRu": "Зимний пейзаж с глубокой заснеженной дорогой, ведущей к церкви на возвышении.",
+      "descriptionEn": "A winter landscape with a deeply snow-covered road leading toward a church on higher ground.",
+      "subjects": { "genre": ["landscape"], "general": ["painting"], "specific": ["snowy road", "church"], "season": "winter", "timeOfDay": "day", "keywords": ["landscape", "road", "church", "winter"] },
+      "reviewStatus": "verified"
+    },
+    "home.feed:15986": {
+      "titleRu": "Натюрморт с цветами у окна",
+      "titleEn": "Still Life with Flowers by a Window",
+      "descriptionRu": "Монохромная работа на бумаге с вазой цветов на столике в затемнённом интерьере у окна.",
+      "descriptionEn": "A monochrome work on paper showing a vase of flowers on a small table in a darkened interior by a window.",
+      "subjects": { "genre": ["still life", "interior"], "general": ["work on paper"], "specific": ["flowers", "vase", "window"], "season": null, "timeOfDay": null, "keywords": ["still life", "flowers", "interior"] },
+      "reviewStatus": "verified"
+    },
+    "home.feed:15987": {
+      "titleRu": "Вид из окна на зимний двор",
+      "titleEn": "View from a Window onto a Winter Courtyard",
+      "descriptionRu": "Монохромная работа на бумаге с видом из верхнего окна на заснеженный городской двор.",
+      "descriptionEn": "A monochrome work on paper depicting a view from an upper window onto a snow-covered urban courtyard.",
+      "subjects": { "genre": ["cityscape"], "general": ["work on paper"], "specific": ["view from a window", "courtyard", "snow"], "season": "winter", "timeOfDay": "day", "keywords": ["cityscape", "window", "courtyard", "winter"] },
+      "reviewStatus": "verified"
+    },
+    "home.unsorted:https://nikitapichugin.ru/wp-content/uploads/2024/03/dsc05234444.jpg": {
+      "titleRu": "Весенний разлив под облаками",
+      "titleEn": "Spring Flood beneath the Clouds",
+      "descriptionRu": "Широкий весенний пейзаж с разлившейся водой, низким берегом и движущимися облаками.",
+      "descriptionEn": "A broad spring landscape with flooded water, a low shoreline, and moving clouds.",
+      "subjects": { "genre": ["landscape"], "general": ["painting"], "specific": ["flooded water", "shore", "clouds"], "season": "spring", "timeOfDay": "day", "keywords": ["landscape", "spring flood", "clouds"] },
+      "reviewStatus": "verified"
+    },
+    "home.unsorted:https://nikitapichugin.ru/wp-content/uploads/2024/03/img_7210.jpg": {
+      "titleRu": "Зимний вечер в парке",
+      "titleEn": "Winter Evening in a Park",
+      "descriptionRu": "Сумеречный зимний пейзаж с заснеженной дорожкой, деревьями и тёплым светом среди построек.",
+      "descriptionEn": "A winter twilight scene with a snow-covered path, trees, and warm light among buildings.",
+      "subjects": { "genre": ["landscape"], "general": ["painting"], "specific": ["park", "snow", "trees", "buildings"], "season": "winter", "timeOfDay": "evening", "keywords": ["landscape", "park", "winter", "evening"] },
+      "reviewStatus": "verified"
+    },
+    "home.unsorted:https://nikitapichugin.ru/wp-content/uploads/2024/03/img_6951.jpg": {
+      "titleRu": "Зимний пейзаж с церковью",
+      "titleEn": "Winter Landscape with a Church",
+      "descriptionRu": "Зимний пейзаж в холодной голубой гамме с церковью, поднимающейся над заснеженными деревьями.",
+      "descriptionEn": "A winter landscape in cool blue tones with a church rising above snow-covered trees.",
+      "subjects": { "genre": ["landscape"], "general": ["painting"], "specific": ["church", "trees", "snow"], "season": "winter", "timeOfDay": "day", "keywords": ["landscape", "church", "winter"] },
+      "reviewStatus": "verified"
+    },
+    "home.unsorted:https://nikitapichugin.ru/wp-content/uploads/2024/03/img_6878.jpg": {
+      "titleRu": "Зимняя деревня",
+      "titleEn": "Winter Village",
+      "descriptionRu": "Монохромный зимний пейзаж с деревенскими домами и церковью среди заснеженных ветвей.",
+      "descriptionEn": "A monochrome winter landscape with village houses and a church amid snow-covered branches.",
+      "subjects": { "genre": ["landscape"], "general": ["painting"], "specific": ["village", "church", "snow"], "season": "winter", "timeOfDay": "day", "keywords": ["landscape", "village", "winter"] },
+      "reviewStatus": "verified"
+    },
+    "home.unsorted:https://nikitapichugin.ru/wp-content/uploads/2024/03/dsc05426.jpg": {
+      "titleRu": "Старая лодка у зимнего берега",
+      "titleEn": "Old Boat by a Winter Shore",
+      "descriptionRu": "Зимний пейзаж со старой лодкой, лежащей у заснеженного берега под переплетением ветвей.",
+      "descriptionEn": "A winter landscape with an old boat resting by a snow-covered shore beneath interlacing branches.",
+      "subjects": { "genre": ["landscape"], "general": ["painting"], "specific": ["boat", "shore", "trees", "snow"], "season": "winter", "timeOfDay": "day", "keywords": ["landscape", "boat", "winter"] },
+      "reviewStatus": "verified"
+    },
+    "home.unsorted:https://nikitapichugin.ru/wp-content/uploads/2024/03/dsc05409.jpg": {
+      "titleRu": "Монастырь у воды",
+      "titleEn": "Monastery by the Water",
+      "descriptionRu": "Архитектурный пейзаж с монастырским ансамблем, отражающимся в воде под облачным небом.",
+      "descriptionEn": "An architectural landscape with a monastery complex reflected in water beneath a cloudy sky.",
+      "subjects": { "genre": ["architectural landscape"], "general": ["painting"], "specific": ["monastery", "water", "reflection"], "season": null, "timeOfDay": "day", "keywords": ["architecture", "monastery", "water"] },
+      "reviewStatus": "verified"
+    },
+    "home.unsorted:https://nikitapichugin.ru/wp-content/uploads/2024/03/dsc05394.jpg": {
+      "titleRu": "Морской берег",
+      "titleEn": "Seashore",
+      "descriptionRu": "Морской пейзаж с волнами, набегающими на низкий каменистый берег, и холмами вдали.",
+      "descriptionEn": "A seascape with waves reaching a low rocky shore and hills in the distance.",
+      "subjects": { "genre": ["seascape"], "general": ["painting"], "specific": ["sea", "waves", "shore"], "season": null, "timeOfDay": "day", "keywords": ["seascape", "sea", "shore"] },
+      "reviewStatus": "verified"
+    },
+    "home.unsorted:https://nikitapichugin.ru/wp-content/uploads/2024/03/dsc05384.jpg": {
+      "titleRu": "Солнечный день в зимнем лесу",
+      "titleEn": "Sunny Day in a Winter Forest",
+      "descriptionRu": "Вертикальный зимний пейзаж с тонкими деревьями и полосой яркого света на заснеженной земле.",
+      "descriptionEn": "A vertical winter landscape with slender trees and a band of bright sunlight across the snowy ground.",
+      "subjects": { "genre": ["landscape"], "general": ["painting"], "specific": ["forest", "trees", "snow", "sunlight"], "season": "winter", "timeOfDay": "day", "keywords": ["landscape", "forest", "winter"] },
+      "reviewStatus": "verified"
+    },
+    "home.unsorted:https://nikitapichugin.ru/wp-content/uploads/2024/03/dsc05375.jpg": {
+      "titleRu": "Зимний двор",
+      "titleEn": "Winter Courtyard",
+      "descriptionRu": "Зимний городской двор с тёмными стволами деревьев, домом и красными акцентами за снегом.",
+      "descriptionEn": "A winter urban courtyard with dark tree trunks, a house, and red accents beyond the snow.",
+      "subjects": { "genre": ["cityscape"], "general": ["painting"], "specific": ["courtyard", "trees", "house", "snow"], "season": "winter", "timeOfDay": "day", "keywords": ["cityscape", "courtyard", "winter"] },
+      "reviewStatus": "verified"
+    },
+    "home.unsorted:https://nikitapichugin.ru/wp-content/uploads/2024/03/dsc05374.jpg": {
+      "titleRu": "Дом у пруда среди берёз",
+      "titleEn": "House by a Pond among Birches",
+      "descriptionRu": "Весенний пейзаж с красным домом среди берёз и его отражением в спокойной воде пруда.",
+      "descriptionEn": "A spring landscape with a red house among birches and its reflection in the still water of a pond.",
+      "subjects": { "genre": ["landscape"], "general": ["painting"], "specific": ["house", "birches", "pond", "reflection"], "season": "spring", "timeOfDay": "day", "keywords": ["landscape", "house", "birches", "pond"] },
+      "reviewStatus": "verified"
+    },
+    "home.unsorted:https://nikitapichugin.ru/wp-content/uploads/2024/03/dsc05277.jpg": {
+      "titleRu": "Зимний вид на колокольню",
+      "titleEn": "Winter View of a Bell Tower",
+      "descriptionRu": "Зимний городской пейзаж с колокольней, заснеженными крышами и мягким вечерним светом.",
+      "descriptionEn": "A winter townscape with a bell tower, snow-covered roofs, and soft evening light.",
+      "subjects": { "genre": ["cityscape"], "general": ["painting"], "specific": ["bell tower", "rooftops", "snow"], "season": "winter", "timeOfDay": "evening", "keywords": ["cityscape", "bell tower", "winter"] },
+      "reviewStatus": "verified"
+    },
+    "home.unsorted:https://nikitapichugin.ru/wp-content/uploads/2024/03/dsc05009.jpg": {
+      "titleRu": "Зимняя улица",
+      "titleEn": "Winter Street",
+      "descriptionRu": "Зимняя городская улица с фигурами прохожих, автомобилями и домами под тяжёлым небом.",
+      "descriptionEn": "A winter city street with pedestrians, cars, and buildings beneath a heavy sky.",
+      "subjects": { "genre": ["cityscape"], "general": ["painting"], "specific": ["street", "pedestrians", "cars", "snow"], "season": "winter", "timeOfDay": "day", "keywords": ["cityscape", "street", "winter"] },
+      "reviewStatus": "verified"
+    },
+    "home.unsorted:https://nikitapichugin.ru/wp-content/uploads/2024/03/dsc04999.jpg": {
+      "titleRu": "Река под весенним солнцем",
+      "titleEn": "River beneath the Spring Sun",
+      "descriptionRu": "Весенний речной пейзаж с ледяными берегами и ярким солнечным светом, отражённым в воде.",
+      "descriptionEn": "A spring river landscape with icy banks and bright sunlight reflected in the water.",
+      "subjects": { "genre": ["landscape"], "general": ["painting"], "specific": ["river", "ice", "sunlight"], "season": "spring", "timeOfDay": "day", "keywords": ["landscape", "river", "spring"] },
+      "reviewStatus": "verified"
+    },
+    "home.unsorted:https://nikitapichugin.ru/wp-content/uploads/2024/03/dsc04991.jpg": {
+      "titleRu": "Цветущая сирень под берёзой",
+      "titleEn": "Flowering Lilacs beneath a Birch",
+      "descriptionRu": "Весенний пейзаж с цветущей сиренью у тонкой берёзы на фоне светлого неба.",
+      "descriptionEn": "A spring landscape with flowering lilacs beside a slender birch against a pale sky.",
+      "subjects": { "genre": ["landscape"], "general": ["painting"], "specific": ["lilacs", "birch", "flowers"], "season": "spring", "timeOfDay": "day", "keywords": ["landscape", "lilacs", "birch", "spring"] },
+      "reviewStatus": "verified"
+    },
+    "home.unsorted:https://nikitapichugin.ru/wp-content/uploads/2024/03/cheryomuha.jpg": {
+      "titleRu": "Черёмуха",
+      "titleEn": "Bird Cherry",
+      "descriptionRu": "Натюрморт с ветвями цветущей черёмухи в стеклянной вазе на светлом столе.",
+      "descriptionEn": "A still life with flowering bird-cherry branches in a glass vase on a light-colored table.",
+      "subjects": { "genre": ["still life"], "general": ["painting"], "specific": ["bird cherry", "flowers", "glass vase"], "season": "spring", "timeOfDay": null, "keywords": ["still life", "bird cherry", "flowers"] },
+      "reviewStatus": "verified"
+    }
+  },
+  "assets": {
+    "asset_08ac8803d649faaf": { "visualClass": "studio_or_process_photo", "classConfidence": "high", "reviewStatus": "verified" },
+    "asset_174f128d44438c22": { "visualClass": "studio_or_process_photo", "classConfidence": "high", "reviewStatus": "verified" },
+    "asset_1b3d75f817a204bf": { "visualClass": "studio_or_process_photo", "classConfidence": "high", "reviewStatus": "verified" },
+    "asset_310b6ce3e51ffd6d": { "visualClass": "studio_or_process_photo", "classConfidence": "high", "reviewStatus": "verified" },
+    "asset_43b7a714d854181c": { "visualClass": "context_or_reference_photo", "classConfidence": "high", "reviewStatus": "verified" },
+    "asset_67e63a15dd272daa": { "visualClass": "context_or_reference_photo", "classConfidence": "high", "reviewStatus": "verified" },
+    "asset_6d54118d52c52bb2": { "visualClass": "studio_or_process_photo", "classConfidence": "high", "reviewStatus": "verified" },
+    "asset_6d96e42d62033573": { "visualClass": "artwork_reproduction", "classConfidence": "high", "reviewStatus": "verified" },
+    "asset_7d16ead8bfee2494": { "visualClass": "studio_or_process_photo", "classConfidence": "high", "reviewStatus": "verified" },
+    "asset_7fdeb22805960cf9": { "visualClass": "context_or_reference_photo", "classConfidence": "high", "reviewStatus": "verified" },
+    "asset_8602da5950efa51b": { "visualClass": "studio_or_process_photo", "classConfidence": "high", "reviewStatus": "verified" },
+    "asset_966adab31ca2accb": { "visualClass": "studio_or_process_photo", "classConfidence": "high", "reviewStatus": "verified" },
+    "asset_a91da219cd8975d1": { "visualClass": "artwork_reproduction", "classConfidence": "medium", "reviewStatus": "verified" },
+    "asset_a702341069d4d537": { "visualClass": "context_or_reference_photo", "classConfidence": "high", "reviewStatus": "verified" },
+    "asset_ab47287344c50e17": { "visualClass": "context_or_reference_photo", "classConfidence": "high", "reviewStatus": "verified" },
+    "asset_b7e97d8812e06370": { "visualClass": "context_or_reference_photo", "classConfidence": "medium", "reviewStatus": "verified" },
+    "asset_8b321ac6eca463d6": { "visualClass": "context_or_reference_photo", "classConfidence": "high", "reviewStatus": "verified" },
+    "asset_bae7c184ca155531": { "visualClass": "context_or_reference_photo", "classConfidence": "high", "reviewStatus": "verified" },
+    "asset_cad10fc3fab6fa13": { "visualClass": "studio_or_process_photo", "classConfidence": "high", "reviewStatus": "verified" },
+    "asset_cfb5cc509c885bf8": { "visualClass": "studio_or_process_photo", "classConfidence": "high", "reviewStatus": "verified" },
+    "asset_d17e5e814f7855e7": { "visualClass": "context_or_reference_photo", "classConfidence": "high", "reviewStatus": "verified" },
+    "asset_e0d3b8e0d6e33324": { "visualClass": "context_or_reference_photo", "classConfidence": "high", "reviewStatus": "verified" },
+    "asset_e76222b77938079e": { "visualClass": "studio_or_process_photo", "classConfidence": "high", "reviewStatus": "verified" },
+    "asset_f082676fe64d6811": { "visualClass": "context_or_reference_photo", "classConfidence": "medium", "reviewStatus": "verified" }
+  }
+}

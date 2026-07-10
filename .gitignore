@@ -4,6 +4,12 @@ dist/
 test-results/
 playwright-report/
 .playwright-mcp/
+.playwright-cli/
+content-export/media/originals/
+content-export/raw/
+content-export/reports/
+output/
+public/museum/
 *.log
 *.tmp
 .DS_Store

@@ -1,0 +1,102 @@
+---
+import { getPreviewPath, getPrimaryAsset, getWorkDate, getWorkHref, type MuseumWork } from "@lib/museum";
+
+interface Props {
+  works: MuseumWork[];
+}
+
+const { works } = Astro.props;
+const sorted = [...works].sort((a, b) => {
+  const dateA = a.capture.displayDate ? new Date(a.capture.displayDate).getTime() : 0;
+  const dateB = b.capture.displayDate ? new Date(b.capture.displayDate).getTime() : 0;
+  return dateB - dateA || a.publicSlug.localeCompare(b.publicSlug, "ru");
+});
+---
+
+<div class="observation-wall" data-observation-wall>
+  {sorted.map((work, index) => {
+    const asset = getPrimaryAsset(work);
+    return (
+      <a
+        href={getWorkHref(work)}
+        class="observation-wall__item"
+        aria-label={`Фотокомпозиция, ${getWorkDate(work)}, ${index + 1} из ${sorted.length}`}
+      >
+        <figure>
+          <div>
+            <img
+              src={getPreviewPath(asset)}
+              alt=""
+              width={asset.previewWidthPx}
+              height={asset.previewHeightPx}
+              loading={index < 8 ? "eager" : "lazy"}
+            />
+          </div>
+          <figcaption>
+            <span>{getWorkDate(work)}</span>
+          </figcaption>
+        </figure>
+      </a>
+    );
+  })}
+</div>
+
+<style>
+  .observation-wall {
+    columns: 4;
+    column-gap: clamp(14px, 2.3vw, 34px);
+  }
+
+  .observation-wall__item {
+    display: block;
+    break-inside: avoid;
+    margin-bottom: clamp(28px, 4vw, 56px);
+  }
+
+  figure {
+    margin: 0;
+  }
+
+  figure > div {
+    overflow: hidden;
+    background: #d6d1c5;
+  }
+
+  img {
+    width: 100%;
+    transition: transform 700ms cubic-bezier(0.2, 0.7, 0.2, 1), filter 280ms ease;
+  }
+
+  .observation-wall__item:hover img,
+  .observation-wall__item:focus-visible img {
+    filter: saturate(1.03);
+    transform: scale(1.015);
+  }
+
+  figcaption {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 10px;
+    color: var(--ink-soft);
+    font: 600 8px/1.35 var(--sans);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  figcaption span:first-child {
+    text-transform: none;
+  }
+
+  @media (max-width: 1000px) {
+    .observation-wall {
+      columns: 3;
+    }
+  }
+
+  @media (max-width: 700px) {
+    .observation-wall {
+      columns: 2;
+    }
+  }
+</style>

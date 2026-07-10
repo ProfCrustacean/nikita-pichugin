@@ -1,0 +1,86 @@
+---
+import "../styles/sunday.css";
+import SundayHeader from "@components/SundayHeader.astro";
+import SundayFooter from "@components/SundayFooter.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  imageAlt?: string;
+  ogType?: "website" | "article";
+  headerTone?: "light" | "dark";
+  bodyClass?: string;
+  noFooter?: boolean;
+  noIndex?: boolean;
+  jsonLd?: Record<string, unknown>;
+}
+
+const {
+  title,
+  description = "Мастерская художника Никиты Пичугина: живопись, собрание работ и контакты.",
+  image = "/museum/previews/eabbd292a000b7c067885d203f5c3e60578242fc787621226fdade3397b96c45.webp",
+  imageAlt = "Живописная работа Никиты Пичугина",
+  ogType = "website",
+  headerTone = "dark",
+  bodyClass = "",
+  noFooter = false,
+  noIndex = false,
+  jsonLd
+} = Astro.props;
+const pageTitle = title ? `${title} — Никита Пичугин` : "Никита Пичугин — мастерская художника";
+const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
+const socialImage = new URL(image, Astro.site ?? Astro.url.origin);
+---
+
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#f2efe5" />
+    {noIndex && <meta name="robots" content="noindex,follow" />}
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={ogType} />
+    {!noIndex && <meta property="og:url" content={canonical} />}
+    <meta property="og:image" content={socialImage} />
+    {imageAlt && <meta property="og:image:alt" content={imageAlt} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={socialImage} />
+    {imageAlt && <meta name="twitter:image:alt" content={imageAlt} />}
+    {!noIndex && <link rel="canonical" href={canonical} />}
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {jsonLd && <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd).replace(/</g, "\\u003c")} />}
+    <title>{pageTitle}</title>
+  </head>
+  <body class={bodyClass} data-header-tone={headerTone}>
+    <a class="sunday-skip" href="#content">К содержанию</a>
+    <SundayHeader />
+    <main id="content">
+      <slot />
+    </main>
+    {!noFooter && <SundayFooter />}
+    <script>
+      const revealElements = document.querySelectorAll<HTMLElement>("[data-sunday-reveal]");
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        revealElements.forEach((element) => element.classList.add("is-visible"));
+      } else {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              (entry.target as HTMLElement).classList.add("is-visible");
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.12 });
+        revealElements.forEach((element) => observer.observe(element));
+      }
+    </script>
+  </body>
+</html>

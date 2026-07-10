@@ -1,0 +1,100 @@
+---
+import { museumSiteContent } from "@lib/museum";
+
+const navigation = [
+  { label: "Работы", href: "/works/" },
+  { label: "Архив", href: "/archive/" },
+  { label: "Мастерская", href: "/studio/" },
+  { label: "Контакты", href: "/contact/" }
+];
+
+const path = Astro.url.pathname;
+const isActive = (href: string) => href === "/"
+  ? path === "/"
+  : path === href || path.startsWith(href);
+---
+
+<header class="sunday-header" data-site-header>
+  <a class="sunday-mark" href="/" aria-label="Никита Пичугин — на главную">
+    <img src="/favicon.png" width="42" height="42" alt="" />
+  </a>
+
+  <nav class="sunday-nav" id="sunday-navigation" aria-label="Основная навигация" data-site-navigation>
+    {navigation.map((item) => (
+      <a href={item.href} aria-current={isActive(item.href) ? "page" : undefined}>{item.label}</a>
+    ))}
+  </nav>
+
+  <a class="sunday-header__contact" href={`mailto:${museumSiteContent.contact.email}`}>Написать</a>
+  <button
+    class="sunday-menu-button"
+    type="button"
+    aria-controls="sunday-navigation"
+    aria-expanded="false"
+    data-site-menu-button
+  >
+    <span></span><span></span>
+    <span class="sr-only">Открыть меню</span>
+  </button>
+</header>
+
+<script>
+  const initializeHeader = () => {
+    const header = document.querySelector<HTMLElement>("[data-site-header]");
+    const button = document.querySelector<HTMLButtonElement>("[data-site-menu-button]");
+    const navigation = document.querySelector<HTMLElement>("[data-site-navigation]");
+    const buttonLabel = button?.querySelector<HTMLElement>(".sr-only");
+    const inertTargets = Array.from(document.querySelectorAll<HTMLElement>("main, .sunday-footer"));
+    if (!header || !button || !navigation || header.dataset.bound === "true") return;
+    header.dataset.bound = "true";
+
+    const updateHeader = () => header.classList.toggle("is-scrolled", window.scrollY > 24);
+    const setBackgroundInert = (inert: boolean) => {
+      inertTargets.forEach((target) => { target.inert = inert; });
+    };
+    const closeMenu = (restoreFocus = false) => {
+      header.classList.remove("is-menu-open");
+      document.documentElement.classList.remove("sunday-menu-open");
+      button.setAttribute("aria-expanded", "false");
+      if (buttonLabel) buttonLabel.textContent = "Открыть меню";
+      setBackgroundInert(false);
+      if (restoreFocus) button.focus();
+    };
+
+    button.addEventListener("click", () => {
+      if (header.classList.contains("is-menu-open")) {
+        closeMenu(true);
+        return;
+      }
+      header.classList.add("is-menu-open");
+      document.documentElement.classList.add("sunday-menu-open");
+      button.setAttribute("aria-expanded", "true");
+      if (buttonLabel) buttonLabel.textContent = "Закрыть меню";
+      setBackgroundInert(true);
+      window.setTimeout(() => navigation.querySelector<HTMLAnchorElement>("a")?.focus({ preventScroll: true }), 100);
+    });
+    navigation.querySelectorAll("a").forEach((link) => link.addEventListener("click", () => closeMenu(false)));
+    window.addEventListener("scroll", updateHeader, { passive: true });
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && header.classList.contains("is-menu-open")) {
+        closeMenu(true);
+      }
+      if (event.key === "Tab" && header.classList.contains("is-menu-open")) {
+        const focusable = Array.from(header.querySelectorAll<HTMLElement>("a[href], button:not([disabled])"))
+          .filter((element) => element.getClientRects().length > 0);
+        const first = focusable[0];
+        const last = focusable.at(-1);
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }
+    });
+    updateHeader();
+  };
+
+  initializeHeader();
+</script>

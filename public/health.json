@@ -1,11 +1,15 @@
 {
   "status": "ok",
-  "generatedAt": "2026-07-09T18:33:45.107Z",
-  "commit": "uncommitted",
-  "content": {
-    "artworks": 24,
-    "homeGallery": 25,
-    "photoWorks": 87,
-    "importedAt": "2026-07-09T01:14:34.647Z"
+  "generatedAt": "2026-07-10T09:09:17.317Z",
+  "commit": "0d16daa",
+  "catalog": {
+    "records": 270,
+    "artworks": 183,
+    "observations": 87,
+    "assets": 295,
+    "placements": 337,
+    "snapshotId": "20260710T090917Z",
+    "generatedAt": "2026-07-10T09:09:17.317Z",
+    "portraitAssetId": "asset_7765879c35ce1293"
   }
 }
