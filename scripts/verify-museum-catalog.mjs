@@ -149,8 +149,15 @@ if (!existsSync(lidoPath) || !existsSync(xsdPath)) {
   if (fabricatedNumberPattern.test(lidoXml)) errors.push("fabricated NP classification leaked into LIDO");
   if (lidoXml.includes("objectPublishedID")) errors.push("LIDO publishes an identifier that has not been confirmed by the artist");
   const result = spawnSync("xmllint", ["--noout", "--schema", xsdPath, lidoPath], { encoding: "utf8" });
-  if (result.status !== 0) errors.push(`LIDO XSD validation failed: ${(result.stderr || result.stdout).trim()}`);
-  else if (result.stderr?.trim()) warnings.push(`LIDO validator warnings: ${result.stderr.trim()}`);
+  if (result.error?.code === "ENOENT" && runtimeOnly) {
+    warnings.push("LIDO XSD validator is unavailable in the hosting image; the locally validated XML is preserved unchanged");
+  } else if (result.error) {
+    errors.push(`LIDO XSD validator failed to start: ${result.error.message}`);
+  } else if (result.status !== 0) {
+    errors.push(`LIDO XSD validation failed: ${String(result.stderr || result.stdout || "unknown validator error").trim()}`);
+  } else if (result.stderr?.trim()) {
+    warnings.push(`LIDO validator warnings: ${result.stderr.trim()}`);
+  }
 }
 
 const ownerInput = await readFile(path.join(ROOT, "owner-input.csv"), "utf8");
