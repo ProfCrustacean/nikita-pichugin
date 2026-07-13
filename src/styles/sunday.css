@@ -348,6 +348,7 @@ a {
     justify-items: start;
     gap: 10px;
     padding: 90px 20px 60px;
+    overflow-y: auto;
     visibility: hidden;
     color: var(--ink);
     background: var(--paper);
@@ -407,6 +408,18 @@ a {
 
   .sunday-footer__bottom {
     gap: 22px;
+  }
+}
+
+@media (max-width: 760px) and (max-height: 600px) {
+  .sunday-nav {
+    align-content: start;
+    gap: 4px;
+    padding-block: 72px 24px;
+  }
+
+  .sunday-nav a {
+    font-size: clamp(32px, 9.5vh, 42px);
   }
 }
 

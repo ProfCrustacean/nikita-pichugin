@@ -10,7 +10,12 @@ const outputRoot = path.join(projectRoot, "public", "site");
 const renditions = [
   { workId: "work_e78336cb6f7d8e6e", filename: "home-hero.webp", width: 2400 },
   { workId: "work_f1ceaad48a110729", filename: "works-hero.webp", width: 2400 },
-  { workId: "work_550dd44ad5709fe5", filename: "contact-hero.webp", width: 2000 }
+  { workId: "work_550dd44ad5709fe5", filename: "contact-hero.webp", width: 2000 },
+  {
+    sourcePath: "public/tours/erzia-pichugin/images/01_o_3.jpg",
+    filename: "exhibition-hall.webp",
+    width: 2000
+  }
 ];
 
 const readJsonLines = async (relativePath) => (await readFile(path.join(exportRoot, relativePath), "utf8"))
@@ -29,18 +34,22 @@ await mkdir(outputRoot, { recursive: true });
 const expected = new Set(renditions.map((rendition) => rendition.filename));
 
 for (const rendition of renditions) {
-  const work = workById.get(rendition.workId);
-  if (!work) throw new Error(`[site:renditions] missing work ${rendition.workId}`);
-  const asset = work.assetIds
-    .map((assetId) => assetById.get(assetId))
-    .find((candidate) => candidate?.visualClass === "artwork_reproduction");
-  if (!asset) throw new Error(`[site:renditions] ${rendition.workId} has no artwork reproduction`);
-
-  const source = path.join(exportRoot, asset.originalPath);
+  let source;
+  if (rendition.sourcePath) {
+    source = path.join(projectRoot, rendition.sourcePath);
+  } else {
+    const work = workById.get(rendition.workId);
+    if (!work) throw new Error(`[site:renditions] missing work ${rendition.workId}`);
+    const asset = work.assetIds
+      .map((assetId) => assetById.get(assetId))
+      .find((candidate) => candidate?.visualClass === "artwork_reproduction");
+    if (!asset) throw new Error(`[site:renditions] ${rendition.workId} has no artwork reproduction`);
+    source = path.join(exportRoot, asset.originalPath);
+  }
   const destination = path.join(outputRoot, rendition.filename);
   if (!existsSync(source)) {
     if (!existsSync(destination)) {
-      throw new Error(`[site:renditions] missing source and committed rendition for ${rendition.workId}`);
+      throw new Error(`[site:renditions] missing source and committed rendition for ${rendition.filename}`);
     }
     continue;
   }

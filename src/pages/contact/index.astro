@@ -28,6 +28,11 @@ const contactJsonLd = {
     <div aria-hidden="true"></div>
     <h1>Контакты</h1>
     <p>По вопросам выставок, приобретения работ и сотрудничества.</p>
+    <a
+      class="contact-hero__exhibition sunday-link"
+      href={museumSiteContent.exhibitionTourPath}
+      data-exhibition-entry="contact"
+    >Пройти по выставке</a>
   </header>
 
   <section class="contact-main">
@@ -101,6 +106,10 @@ const contactJsonLd = {
     max-width: 380px;
     margin-top: 34px;
     font: 400 14px/1.55 var(--sans);
+  }
+
+  .contact-hero__exhibition {
+    margin-top: 28px;
   }
 
   .contact-main,

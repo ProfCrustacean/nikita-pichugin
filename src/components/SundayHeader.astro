@@ -1,12 +1,6 @@
 ---
 import { museumSiteContent } from "@lib/museum";
-
-const navigation = [
-  { label: "Работы", href: "/works/" },
-  { label: "Архив", href: "/archive/" },
-  { label: "Мастерская", href: "/studio/" },
-  { label: "Контакты", href: "/contact/" }
-];
+import { siteNavigation } from "@lib/navigation";
 
 const path = Astro.url.pathname;
 const isActive = (href: string) => href === "/"
@@ -20,7 +14,7 @@ const isActive = (href: string) => href === "/"
   </a>
 
   <nav class="sunday-nav" id="sunday-navigation" aria-label="Основная навигация" data-site-navigation>
-    {navigation.map((item) => (
+    {siteNavigation.map((item) => (
       <a href={item.href} aria-current={isActive(item.href) ? "page" : undefined}>{item.label}</a>
     ))}
   </nav>
@@ -47,12 +41,17 @@ const isActive = (href: string) => href === "/"
     const inertTargets = Array.from(document.querySelectorAll<HTMLElement>("main, .sunday-footer"));
     if (!header || !button || !navigation || header.dataset.bound === "true") return;
     header.dataset.bound = "true";
+    let menuFocusTimer: number | undefined;
 
     const updateHeader = () => header.classList.toggle("is-scrolled", window.scrollY > 24);
     const setBackgroundInert = (inert: boolean) => {
       inertTargets.forEach((target) => { target.inert = inert; });
     };
     const closeMenu = (restoreFocus = false) => {
+      if (menuFocusTimer !== undefined) {
+        window.clearTimeout(menuFocusTimer);
+        menuFocusTimer = undefined;
+      }
       header.classList.remove("is-menu-open");
       document.documentElement.classList.remove("sunday-menu-open");
       button.setAttribute("aria-expanded", "false");
@@ -71,7 +70,12 @@ const isActive = (href: string) => href === "/"
       button.setAttribute("aria-expanded", "true");
       if (buttonLabel) buttonLabel.textContent = "Закрыть меню";
       setBackgroundInert(true);
-      window.setTimeout(() => navigation.querySelector<HTMLAnchorElement>("a")?.focus({ preventScroll: true }), 100);
+      menuFocusTimer = window.setTimeout(() => {
+        menuFocusTimer = undefined;
+        if (header.classList.contains("is-menu-open") && document.activeElement === button) {
+          navigation.querySelector<HTMLAnchorElement>("a")?.focus({ preventScroll: true });
+        }
+      }, 320);
     });
     navigation.querySelectorAll("a").forEach((link) => link.addEventListener("click", () => closeMenu(false)));
     window.addEventListener("scroll", updateHeader, { passive: true });

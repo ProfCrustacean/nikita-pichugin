@@ -34,15 +34,29 @@ assert(detailFiles.length === 270, `expected 270 detail routes, found ${detailFi
 
 const worksHtml = await readFile(path.join(distRoot, "works", "index.html"), "utf8");
 const studioHtml = await readFile(path.join(distRoot, "studio", "index.html"), "utf8");
+const contactHtml = await readFile(path.join(distRoot, "contact", "index.html"), "utf8");
 const homeHtml = await readFile(path.join(distRoot, "index.html"), "utf8");
 const exhibitionHtml = await readFile(path.join(distRoot, "exhibitions", "erzia", "index.html"), "utf8");
 assert((worksHtml.match(/<article[^>]*data-catalog-item[^>]*>/g) ?? []).length === 183, "works page must expose 183 artwork records");
 assert((studioHtml.match(/observation-wall__item/g) ?? []).length === 87, "studio page must expose 87 observations");
 assert(studioHtml.includes("Выставка в Музее Эрьзи"), "Erzia Museum exhibition tour is mislabeled");
 assert(
-  load(studioHtml)("a[href='/exhibitions/erzia/']").length === 1,
+  load(studioHtml)(".studio-tour a[href='/exhibitions/erzia/']").length === 1,
   "studio page must link to the locally hosted Erzia exhibition"
 );
+const homeDocument = load(homeHtml);
+for (const navigationLabel of ["Основная навигация", "Нижняя навигация"]) {
+  const exhibitionLinks = homeDocument(`nav[aria-label='${navigationLabel}'] a[href='/exhibitions/erzia/']`)
+    .filter((_, element) => homeDocument(element).text().trim() === "Выставка");
+  assert(exhibitionLinks.length === 1, `${navigationLabel} must expose one local exhibition link`);
+}
+for (const [entry, html] of [["home", homeHtml], ["contact", contactHtml]]) {
+  const document = load(html);
+  const links = document(`a[data-exhibition-entry='${entry}']`);
+  assert(links.length === 1, `${entry} page must expose one contextual exhibition entry`);
+  assert(links.attr("href") === "/exhibitions/erzia/", `${entry} exhibition entry must stay local`);
+  assert(!links.attr("target"), `${entry} exhibition entry must open in the same tab`);
+}
 assert(
   load(exhibitionHtml)("iframe[src='/tours/erzia-pichugin/index.html']").length === 1,
   "Erzia exhibition page must embed the local tour"
@@ -50,7 +64,7 @@ assert(
 assert(!homeHtml.includes("noindex"), "homepage must be indexable");
 assert(!homeHtml.includes("prototype-switcher"), "prototype switcher leaked into homepage");
 assert(!files.some((file) => file.includes(`${path.sep}portfolios${path.sep}`) && file.endsWith(".html")), "portfolio redirect HTML leaked into production");
-for (const rendition of ["home-hero.webp", "works-hero.webp", "contact-hero.webp"]) {
+for (const rendition of ["home-hero.webp", "works-hero.webp", "contact-hero.webp", "exhibition-hall.webp"]) {
   assert(files.includes(path.join(distRoot, "site", rendition)), `missing high-resolution rendition ${rendition}`);
 }
 
@@ -147,6 +161,7 @@ const previewReferences = new Set();
 
 for (const file of canonicalHtmlFiles) {
   const html = await readFile(file, "utf8");
+  assert(!forbiddenTourHosts.test(html), `remote museum or K360 URL leaked into ${path.relative(distRoot, file)}`);
   const $ = load(html);
   $("script, style, noscript").remove();
   const publicCopy = `${$("body").text()} ${$("[alt]").map((_, element) => $(element).attr("alt") ?? "").get().join(" ")}`;

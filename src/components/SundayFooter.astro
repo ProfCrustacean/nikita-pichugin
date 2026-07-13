@@ -1,12 +1,6 @@
 ---
 import { museumSiteContent } from "@lib/museum";
-
-const navigation = [
-  { label: "Работы", href: "/works/" },
-  { label: "Архив", href: "/archive/" },
-  { label: "Мастерская", href: "/studio/" },
-  { label: "Контакты", href: "/contact/" }
-];
+import { siteNavigation } from "@lib/navigation";
 ---
 
 <footer class="sunday-footer">
@@ -22,7 +16,7 @@ const navigation = [
   </div>
   <div class="sunday-footer__bottom">
     <nav aria-label="Нижняя навигация">
-      {navigation.map((item) => <a href={item.href}>{item.label}</a>)}
+      {siteNavigation.map((item) => <a href={item.href}>{item.label}</a>)}
     </nav>
     <div class="sunday-footer__social">
       <a href={museumSiteContent.contact.telegram} rel="me">Telegram</a>

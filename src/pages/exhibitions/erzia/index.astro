@@ -22,9 +22,9 @@ const tourJsonLd = {
   jsonLd={tourJsonLd}
 >
   <section class="tour-shell" data-tour-shell aria-labelledby="tour-title">
-    <a class="tour-back" href="/studio/" aria-label="Вернуться в мастерскую">
+    <a class="tour-back" href="/" aria-label="Вернуться на сайт">
       <span aria-hidden="true">←</span>
-      <span>Мастерская</span>
+      <span>На сайт</span>
     </a>
 
     <div class="tour-canvas">
@@ -83,7 +83,7 @@ const tourJsonLd = {
 
       window.addEventListener("keydown", (event) => {
         if (event.key === "Escape" && shell.dataset.started !== "true") {
-          window.location.assign("/studio/");
+          window.location.assign("/");
         }
       });
     };

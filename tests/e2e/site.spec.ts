@@ -11,12 +11,28 @@ test("homepage is the production Sunday Light experience", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Никита Пичугин" })).toBeVisible();
   await expect(page.locator(".sunday-header img")).toHaveAttribute("src", "/favicon.png");
   await expect(page.locator(".sunday-footer img")).toHaveAttribute("src", "/favicon.png");
+  const headerExhibitionLink = page.locator("nav[aria-label='Основная навигация'] a[href='/exhibitions/erzia/']");
+  const footerExhibitionLink = page.locator("nav[aria-label='Нижняя навигация'] a[href='/exhibitions/erzia/']");
+  await expect(headerExhibitionLink).toHaveCount(1);
+  await expect(headerExhibitionLink).toHaveText("Выставка");
+  await expect(footerExhibitionLink).toHaveCount(1);
+  await expect(footerExhibitionLink).toHaveText("Выставка");
   await expect(page.locator(".prototype-switcher")).toHaveCount(0);
   await expect(page.locator("meta[name='robots'][content*='noindex']")).toHaveCount(0);
   await expect(page.locator("[data-landscape-journey]")).toHaveAttribute("data-landscape-status", "ready");
   await expect(page.locator("text=/Vite|Astro.*error|Unhandled Runtime Error/i")).toHaveCount(0);
   expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
   expect(consoleIssues).toEqual([]);
+});
+
+test("exhibition is discoverable in editorial contexts", async ({ page }) => {
+  for (const [route, entry] of [["/", "home"], ["/contact/", "contact"]]) {
+    await page.goto(route);
+    const link = page.locator(`[data-exhibition-entry='${entry}']`);
+    await expect(link).toBeVisible();
+    await expect(link).toHaveAttribute("href", "/exhibitions/erzia/");
+    await expect(link).not.toHaveAttribute("target", "_blank");
+  }
 });
 
 test("catalog exposes all artworks and its filters work", async ({ page }, testInfo) => {
@@ -72,7 +88,7 @@ test("studio presents every observation", async ({ page }) => {
 
 test("Erzia exhibition uses the complete local virtual tour", async ({ page, request }) => {
   await page.goto("/studio/");
-  const exhibitionLink = page.locator("a[href='/exhibitions/erzia/']");
+  const exhibitionLink = page.locator(".studio-tour a[href='/exhibitions/erzia/']");
   await expect(exhibitionLink).toHaveCount(1);
   await expect(exhibitionLink).toHaveAttribute("href", "/exhibitions/erzia/");
 
@@ -165,22 +181,31 @@ test("mobile menu is usable and does not expose the text logo", async ({ page },
   await expect(navigation).toBeVisible();
   await expect(navigation).toHaveCSS("transform", "none");
   await expect(navigation.getByRole("link", { name: "Работы" })).toBeVisible();
+  await expect(navigation.getByRole("link")).toHaveCount(5);
+  await expect(navigation.getByRole("link", { name: "Выставка" })).toBeVisible();
   await expect(navigation.getByRole("link", { name: "Работы" })).toBeFocused();
-  const menuGeometry = await navigation.evaluate((element) => {
-    const rect = element.getBoundingClientRect();
-    const links = [...element.querySelectorAll("a")].map((link) => link.getBoundingClientRect());
-    return {
-      top: rect.top,
-      bottom: rect.bottom,
-      viewportHeight: window.innerHeight,
-      linksFit: links.every((link) => link.top >= 0 && link.bottom <= window.innerHeight)
-    };
-  });
+  const menuGeometry = await navigationGeometry(navigation);
   expect(menuGeometry.top).toBe(0);
   expect(menuGeometry.bottom).toBeGreaterThanOrEqual(menuGeometry.viewportHeight - 1);
   expect(menuGeometry.linksFit).toBe(true);
   await page.keyboard.press("Shift+Tab");
   await expect(page.locator(".sunday-mark")).toBeFocused();
+  expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+
+  await page.keyboard.press("Escape");
+  await expect(menu).toBeFocused();
+  await menu.click();
+  await page.keyboard.press("Tab");
+  await expect(page.locator(".sunday-mark")).toBeFocused();
+  await page.waitForTimeout(400);
+  await expect(page.locator(".sunday-mark")).toBeFocused();
+
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Открыть меню" }).click();
+  const shortNavigation = page.locator(".sunday-nav");
+  const shortMenuGeometry = await navigationGeometry(shortNavigation);
+  expect(shortMenuGeometry.linksFit).toBe(true);
   expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
 });
 
@@ -215,5 +240,18 @@ async function elementFitsViewport(locator: import("@playwright/test").Locator) 
   return locator.evaluate((element) => {
     const rect = element.getBoundingClientRect();
     return rect.left >= -1 && rect.right <= window.innerWidth + 1;
+  });
+}
+
+async function navigationGeometry(locator: import("@playwright/test").Locator) {
+  return locator.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    const links = [...element.querySelectorAll("a")].map((link) => link.getBoundingClientRect());
+    return {
+      top: rect.top,
+      bottom: rect.bottom,
+      viewportHeight: window.innerHeight,
+      linksFit: links.every((link) => link.top >= 0 && link.bottom <= window.innerHeight)
+    };
   });
 }

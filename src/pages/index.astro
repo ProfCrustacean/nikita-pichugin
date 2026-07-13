@@ -1,5 +1,6 @@
 ---
 import SundayLayout from "@layouts/SundayLayout.astro";
+import ExhibitionInvitation from "@components/ExhibitionInvitation.astro";
 import LandscapeJourney from "@components/LandscapeJourney.astro";
 import {
   artworkWorks,
@@ -141,6 +142,8 @@ const homeJsonLd = {
       })}
     </div>
   </section>
+
+  <ExhibitionInvitation entry="home" headingId="home-exhibition-title" />
 
   <section class="home-studio" aria-labelledby="studio-title">
     <div class="home-studio__portrait" data-sunday-reveal>
