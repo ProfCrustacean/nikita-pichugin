@@ -13,6 +13,8 @@ const releasePrefixes = [
   "public/museum/",
   "public/tours/",
   "scripts/",
+  "src/domain/catalog/",
+  "src/generated/",
   "src/lib/museum/",
   "src/lib/tour/"
 ];
@@ -45,8 +47,16 @@ const releaseFiles = new Set([
   "yarn.lock"
 ]);
 
-const standardPrefixes = ["src/pages/", "src/components/", "src/styles/"];
-const standardFiles = new Set(["src/data/site-content.json"]);
+const standardPrefixes = [
+  "src/pages/",
+  "src/components/",
+  "src/features/",
+  "src/styles/",
+  "src/layouts/",
+  "src/config/",
+  "src/lib/"
+];
+const standardFiles = new Set();
 const fastPrefixes = ["docs/", "tests/"];
 const documentationNames = /^(?:AGENTS|CHANGELOG|CONTRIBUTING|LICENSE|README)(?:\.[^/]+)?$/i;
 const buildConfigPattern = /^(?:vite|vitest)\.config\.(?:c|m)?[jt]s$/;
@@ -106,8 +116,10 @@ export function classifyChangeSet(filePaths) {
     };
   }
 
-  const scopes = new Set(classifications.map(({ scope }) => scope));
-  if (scopes.size > 1) {
+  const runtimeScopes = new Set(
+    classifications.map(({ scope }) => scope).filter((scope) => scope !== SCOPE.FAST)
+  );
+  if (runtimeScopes.size > 1) {
     return {
       scope: SCOPE.RELEASE,
       reason: "mixed_scopes",
@@ -116,7 +128,7 @@ export function classifyChangeSet(filePaths) {
     };
   }
 
-  const [scope] = scopes;
+  const [scope = SCOPE.FAST] = runtimeScopes;
   return {
     scope,
     reason: `${scope}_changes`,

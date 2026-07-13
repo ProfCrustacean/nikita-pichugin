@@ -15,74 +15,74 @@ services:
         source: /contact-info/
         destination: /contact/
       - type: redirect
-        source: /portfolios/dyhanie-leta/
-        destination: /works/dykhanie-leta-9f97cfd8/
-      - type: redirect
-        source: /portfolios/skvoz-pylnoe-steklo/
-        destination: /works/skvoz-pylnoe-steklo-dc0bfaf2/
-      - type: redirect
-        source: /portfolios/iz-proshlogo/
-        destination: /works/iz-proshlogo-0acf0e4f/
-      - type: redirect
-        source: /portfolios/solncze-avgusta/
-        destination: /works/solntse-avgusta-4263cfe2/
-      - type: redirect
-        source: /portfolios/na-mngnovene-stalo-tiho/
-        destination: /works/na-mngnovene-stalo-tikho-86dba6f9/
-      - type: redirect
-        source: /portfolios/ozhidanie/
-        destination: /works/ozhidanie-93975f75/
-      - type: redirect
-        source: /portfolios/predchuvstvie/
-        destination: /works/predchuvstvie-85f760db/
-      - type: redirect
-        source: /portfolios/vremya-zastylo/
-        destination: /works/vremya-zastylo-310ced83/
-      - type: redirect
-        source: /portfolios/utro-avgusta/
-        destination: /works/utro-avgusta-b7308259/
-      - type: redirect
-        source: /portfolios/otrazhenie-marta/
-        destination: /works/otrazhenie-081413fe/
-      - type: redirect
-        source: /portfolios/mir-masterskoj/
-        destination: /works/mir-masterskoy-5c6e922b/
-      - type: redirect
-        source: /portfolios/uhodit-vek/
-        destination: /works/ukhodit-vek-d6bdd90e/
-      - type: redirect
-        source: /portfolios/osennee-bezmolvie/
-        destination: /works/osennee-bezmolvie-35e25a9b/
-      - type: redirect
         source: /portfolios/dary-leta/
         destination: /works/dary-leta-99b0a5af/
-      - type: redirect
-        source: /portfolios/sentyabr/
-        destination: /works/sentyabr-f79af7a2/
-      - type: redirect
-        source: /portfolios/melanholiya/
-        destination: /works/melankholiya-7aff916d/
       - type: redirect
         source: /portfolios/dver/
         destination: /works/ozhidanie-f486958a/
       - type: redirect
-        source: /portfolios/utro-v-masterskoj/
-        destination: /works/utro-v-masterskoy-e37c7768/
+        source: /portfolios/dyhanie-leta/
+        destination: /works/dykhanie-leta-9f97cfd8/
       - type: redirect
-        source: /portfolios/pervyj-sneg/
-        destination: /works/pervyy-sneg-4df1c591/
+        source: /portfolios/iz-proshlogo/
+        destination: /works/iz-proshlogo-0acf0e4f/
+      - type: redirect
+        source: /portfolios/melanholiya/
+        destination: /works/melankholiya-7aff916d/
+      - type: redirect
+        source: /portfolios/mir-masterskoj/
+        destination: /works/mir-masterskoy-5c6e922b/
       - type: redirect
         source: /portfolios/moj-nomer-35/
         destination: /works/moy-nomer-35-93a22e17/
       - type: redirect
+        source: /portfolios/na-mngnovene-stalo-tiho/
+        destination: /works/na-mngnovene-stalo-tikho-86dba6f9/
+      - type: redirect
+        source: /portfolios/osennee-bezmolvie/
+        destination: /works/osennee-bezmolvie-35e25a9b/
+      - type: redirect
+        source: /portfolios/otrazhenie-marta/
+        destination: /works/otrazhenie-081413fe/
+      - type: redirect
+        source: /portfolios/ozhidanie/
+        destination: /works/ozhidanie-93975f75/
+      - type: redirect
+        source: /portfolios/pervyj-sneg/
+        destination: /works/pervyy-sneg-4df1c591/
+      - type: redirect
+        source: /portfolios/predchuvstvie/
+        destination: /works/predchuvstvie-85f760db/
+      - type: redirect
         source: /portfolios/s-kraskami/
         destination: /works/9-maya-af03f7d7/
       - type: redirect
-        source: /portfolios/vyhod/
-        destination: /works/vykhod-03a4731b/
+        source: /portfolios/sentyabr/
+        destination: /works/sentyabr-f79af7a2/
+      - type: redirect
+        source: /portfolios/skvoz-pylnoe-steklo/
+        destination: /works/skvoz-pylnoe-steklo-dc0bfaf2/
+      - type: redirect
+        source: /portfolios/solncze-avgusta/
+        destination: /works/solntse-avgusta-4263cfe2/
       - type: redirect
         source: /portfolios/tihij-omut/
         destination: /works/tikhiy-omut-f6909478/
       - type: redirect
+        source: /portfolios/uhodit-vek/
+        destination: /works/ukhodit-vek-d6bdd90e/
+      - type: redirect
+        source: /portfolios/utro-avgusta/
+        destination: /works/utro-avgusta-b7308259/
+      - type: redirect
+        source: /portfolios/utro-v-masterskoj/
+        destination: /works/utro-v-masterskoy-e37c7768/
+      - type: redirect
         source: /portfolios/vesennij-den/
         destination: /works/vesenniy-den-adb0ec39/
+      - type: redirect
+        source: /portfolios/vremya-zastylo/
+        destination: /works/vremya-zastylo-310ced83/
+      - type: redirect
+        source: /portfolios/vyhod/
+        destination: /works/vykhod-03a4731b/

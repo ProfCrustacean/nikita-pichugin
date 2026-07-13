@@ -1,0 +1,102 @@
+---
+import MuseumWorkCard from "@components/MuseumWorkCard.astro";
+import type { WorkDetailPageModel } from "./work-detail-model";
+import "./work-detail.css";
+
+interface Props {
+  model: WorkDetailPageModel;
+}
+
+const { model } = Astro.props;
+---
+
+<article class="work-detail">
+  <header class:list={["work-detail__header", { "work-detail__header--photographic": model.isPhotographic }]}>
+    <a class="sunday-link" href={model.backHref}>{model.backLabel}</a>
+    <p class="sunday-kicker">{model.typeLabel}</p>
+    <h1>{model.publicTitle}</h1>
+    {model.titleIsEditorial && !model.isPhotographic && <p class="work-detail__editorial">Название дано редакцией; авторское название не указано.</p>}
+  </header>
+
+  <figure class="work-detail__primary" data-work-asset-id={model.primaryMedia.assetId}>
+    <img
+      src={model.primaryMedia.src}
+      alt={model.primaryMedia.alt}
+      width={model.primaryMedia.width}
+      height={model.primaryMedia.height}
+      fetchpriority="high"
+    />
+    <figcaption>{model.primaryMedia.caption}</figcaption>
+  </figure>
+
+  {(model.description || model.metadata.length > 0) && (
+    <section class:list={["work-detail__record", { "work-detail__record--description-only": model.metadata.length === 0 }]} aria-labelledby="record-heading">
+      <div>
+        <h2 id="record-heading">Сведения о работе</h2>
+        {model.description && <p class="work-detail__description">{model.description}</p>}
+      </div>
+      {model.metadata.length > 0 && (
+        <dl>
+          {model.metadata.map((item) => (
+            <div>
+              <dt>{item.label}</dt>
+              <dd>{item.value}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+    </section>
+  )}
+
+  {model.secondaryReproductions.length > 0 && (
+    <section class="work-media" aria-labelledby="views-heading">
+      <header>
+        <p class="sunday-kicker">Другие виды</p>
+        <h2 id="views-heading">Та же работа,<br />другой кадр.</h2>
+      </header>
+      <div class="work-media__grid">
+        {model.secondaryReproductions.map((media) => (
+          <figure data-work-asset-id={media.assetId}>
+            <img src={media.src} alt={media.alt} width={media.width} height={media.height} loading="lazy" />
+            <figcaption>{media.caption}</figcaption>
+          </figure>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {model.associatedAssets.length > 0 && (
+    <section class="work-media work-media--warm" aria-labelledby="materials-heading">
+      <header>
+        <p class="sunday-kicker">Материалы к работе</p>
+        <h2 id="materials-heading">Связанные<br />изображения.</h2>
+        <p class="work-media__context">Изображения были опубликованы вместе с работой; их роль не установлена.</p>
+      </header>
+      <div class="work-media__grid">
+        {model.associatedAssets.map((media) => (
+          <figure data-work-asset-id={media.assetId}>
+            <img src={media.src} alt={media.alt} width={media.width} height={media.height} loading="lazy" />
+            <figcaption>{media.caption}</figcaption>
+          </figure>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {model.relatedWorks.length > 0 && (
+    <section class="work-related" aria-labelledby="related-heading">
+      <header>
+        <p class="sunday-kicker">Рядом в собрании</p>
+        <h2 id="related-heading">Продолжить смотреть</h2>
+      </header>
+      <div>
+        {model.relatedWorks.map((related) => <MuseumWorkCard work={related} compact />)}
+      </div>
+    </section>
+  )}
+
+  <nav class="work-detail__next" aria-label="Соседние работы">
+    {model.pager.previous ? <a href={model.pager.previous.href}><span>Предыдущая</span><strong>{model.pager.previous.title}</strong></a> : <span></span>}
+    {model.pager.next ? <a href={model.pager.next.href}><span>Следующая</span><strong>{model.pager.next.title}</strong></a> : <span></span>}
+  </nav>
+</article>

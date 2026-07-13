@@ -31,11 +31,33 @@ describe("production smoke helpers", () => {
   it("routes shared UI changes through representative site pages", () => {
     expect(changedPathsFromFiles(["src/components/SundayHeader.astro"])).toEqual([
       "/",
+      "/archive/",
       "/contact/",
       "/exhibitions/erzia/",
       "/studio/",
       "/works/"
     ]);
+  });
+
+  it("routes features, site config, and generated catalog changes to their affected pages", () => {
+    expect(changedPathsFromFiles(["src/features/studio/StudioPage.astro"])).toEqual(["/studio/"]);
+    expect(changedPathsFromFiles(["src/features/tour/TourView.astro"])).toEqual(["/exhibitions/erzia/"]);
+    expect(changedPathsFromFiles(["src/config/site-config.json"])).toEqual([
+      "/",
+      "/archive/",
+      "/contact/",
+      "/exhibitions/erzia/",
+      "/studio/",
+      "/works/"
+    ]);
+
+    const catalogPaths = changedPathsFromFiles(["src/generated/site-runtime.json"]);
+    expect(catalogPaths).toContain("/");
+    expect(catalogPaths).toContain("/archive/");
+    expect(catalogPaths).toContain("/studio/");
+    expect(catalogPaths).toContain("/works/");
+    expect(catalogPaths).toContain("/works/9-maya-af03f7d7/");
+    expect(catalogPaths).toContain("/works/fotokompozitsiya-003d31ab/");
   });
 
   it("accepts repeatable paths and abbreviated matching commits", () => {

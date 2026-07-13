@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { horizontalOverflow } from "./helpers";
+import { catalogCounts, studioProcessImageCount } from "./runtime";
 
 test("homepage is the production Sunday Light experience", async ({ page }) => {
   const consoleIssues: string[] = [];
@@ -39,8 +40,8 @@ test("exhibition is discoverable in editorial contexts", async ({ page }) => {
 test("studio presents every observation", async ({ page }) => {
   await page.goto("/studio/");
   await expect(page.getByRole("heading", { name: "Мастерская" })).toBeVisible();
-  await expect(page.locator(".studio-process__item")).toHaveCount(11);
-  await expect(page.locator(".observation-wall__item")).toHaveCount(87);
+  await expect(page.locator(".studio-process__item")).toHaveCount(studioProcessImageCount);
+  await expect(page.locator(".observation-wall__item")).toHaveCount(catalogCounts.photographicWorks);
   await expect(page.getByText("Выставка в Музее Эрьзи")).toBeVisible();
   expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
 });

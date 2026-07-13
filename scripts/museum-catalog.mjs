@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import path from "node:path";
 import * as cheerio from "cheerio";
 import sharp from "sharp";
-import { decodeText } from "./wordpress-content.mjs";
+import { decodeText } from "./source-content.mjs";
 import { SCHEMA_VERSION } from "./museum-schema.mjs";
 
 export const TECHNICAL_LABEL_RE = /^(?:photo|img|dsc|image|pxl|mvimg)(?:[_-]|\d|$)/i;

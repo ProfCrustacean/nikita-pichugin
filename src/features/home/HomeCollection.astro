@@ -1,0 +1,39 @@
+---
+import type { HomePageModel } from "./home-model";
+
+interface Props {
+  collection: HomePageModel["collection"];
+}
+
+const { collection } = Astro.props;
+---
+
+<section class="home-collection" aria-labelledby="collection-title">
+  <header data-sunday-reveal>
+    <p class="sunday-kicker">{collection.kicker}</p>
+    <div>
+      <h2 id="collection-title">{collection.heading}</h2>
+      <p>{collection.workCount} произведения. {collection.description}</p>
+      <a class="sunday-link" href={collection.href}>{collection.cta}</a>
+    </div>
+  </header>
+  <div class="home-collection__works">
+    {collection.works.map((work, index) => (
+      <a class={`home-collection__work home-collection__work--${index + 1}`} href={work.href} data-sunday-reveal>
+        <figure>
+          <img
+            src={work.image.src}
+            alt={work.image.alt}
+            width={work.image.width}
+            height={work.image.height}
+            loading="lazy"
+          />
+          <figcaption>
+            <span>{work.title}</span>
+            {work.date && <span>{work.date}</span>}
+          </figcaption>
+        </figure>
+      </a>
+    ))}
+  </div>
+</section>

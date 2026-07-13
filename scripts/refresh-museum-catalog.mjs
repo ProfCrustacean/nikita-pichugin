@@ -15,7 +15,7 @@ import {
   parseVcIncludeIds,
   slugify,
   textFromHtml
-} from "./wordpress-content.mjs";
+} from "./source-content.mjs";
 import { catalogSchema, SCHEMA_VERSION } from "./museum-schema.mjs";
 import {
   baseRecord,

@@ -1,15 +1,8 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
-import path from "node:path";
 import type { APIRoute } from "astro";
+import { getCatalogManifest, getSiteContent } from "../domain/catalog/repository";
 
 export const prerender = true;
-
-const projectRoot = process.cwd();
-
-const readJson = (relativePath: string) => JSON.parse(
-  readFileSync(path.join(projectRoot, relativePath), "utf8")
-);
 
 const getCommit = () => {
   try {
@@ -23,8 +16,8 @@ const getCommit = () => {
 };
 
 export const GET: APIRoute = () => {
-  const manifest = readJson("content-export/data/manifest.json");
-  const siteContent = readJson("content-export/data/site-content.json");
+  const manifest = getCatalogManifest();
+  const siteContent = getSiteContent();
   const health = {
     status: "ok",
     generatedAt: manifest.generatedAt,
@@ -35,7 +28,7 @@ export const GET: APIRoute = () => {
       observations: manifest.counts.photographicWorks,
       assets: manifest.counts.assets,
       placements: manifest.counts.placements,
-      snapshotId: manifest.snapshotId,
+      snapshotId: manifest.sourceSnapshotId,
       generatedAt: manifest.generatedAt,
       portraitAssetId: siteContent.portraitAssetId
     }

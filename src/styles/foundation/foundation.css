@@ -1,0 +1,77 @@
+:root {
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --paper: #f2efe5;
+  --paper-deep: #e2dccb;
+  --ink: #24241f;
+  --ink-soft: rgba(36, 36, 31, 0.64);
+  --line: rgba(36, 36, 31, 0.17);
+  --white: #fffaf0;
+  --field: #7e856c;
+  --accent: #e33b2f;
+  --gutter: clamp(20px, 5vw, 84px);
+  --serif: Georgia, "Times New Roman", serif;
+  --sans: Arial, Helvetica, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  color: var(--ink);
+  background: var(--paper);
+  font-family: var(--sans);
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+  overflow-x: hidden;
+  background: var(--paper);
+}
+
+body[data-header-tone="light"] .sunday-header:not(.is-scrolled):not(.is-menu-open) { color: var(--white); }
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; height: auto; }
+
+button,
+input,
+select {
+  color: inherit;
+  font: inherit;
+}
+
+button,
+a { -webkit-tap-highlight-color: transparent; }
+
+:where(a, button, input, select):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+::selection { color: var(--white); background: var(--accent); }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.sunday-skip {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 200;
+  padding: 10px 14px;
+  color: white;
+  background: #111;
+  transform: translateY(-150%);
+}
+
+.sunday-skip:focus { transform: none; }

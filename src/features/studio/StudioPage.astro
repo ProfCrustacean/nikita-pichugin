@@ -1,0 +1,58 @@
+---
+import ObservationWall from "@components/ObservationWall.astro";
+import type { StudioPageModel } from "./studio-model";
+import "./studio.css";
+
+interface Props { model: StudioPageModel }
+const { model } = Astro.props;
+---
+
+<header class="studio-hero">
+  <div class="studio-hero__copy">
+    <p class="sunday-kicker">Художник</p>
+    <h1>Мастерская</h1>
+    <p>Портрет Никиты Пичугина и предметы его рабочего пространства.</p>
+  </div>
+  <div class="studio-hero__portrait">
+    <img src={model.portrait.src} alt={model.portrait.alt} width={model.portrait.width} height={model.portrait.height} fetchpriority="high" />
+  </div>
+</header>
+
+<section class="studio-statement" data-sunday-reveal>
+  <p class="sunday-kicker">В мастерской</p>
+  <div>
+    <h2>Краски, кисти,<br />инструменты.</h2>
+    <p>Здесь собраны кадры инструментов, красок и предметов из рабочего пространства художника.</p>
+  </div>
+</section>
+
+<section class="studio-process" aria-label="Материалы мастерской">
+  {model.processImages.map((image, index) => (
+    <figure class={`studio-process__item studio-process__item--${(index % 4) + 1}`} data-sunday-reveal>
+      <img src={image.src} alt={image.alt} width={image.width} height={image.height} loading="lazy" />
+    </figure>
+  ))}
+</section>
+
+<section class="studio-tour" data-sunday-reveal aria-labelledby="exhibition-tour-title">
+  <p class="sunday-kicker">Выставка в Музее Эрьзи</p>
+  <div>
+    <h2 id="exhibition-tour-title">Пройти<br />по выставке.</h2>
+    <p>Виртуальный проход по выставке Никиты Пичугина в Мордовском республиканском музее изобразительных искусств имени С. Д. Эрьзи.</p>
+    <a class="sunday-link" href={model.exhibitionTourPath} data-exhibition-entry="studio" aria-label="Войти в виртуальный тур по выставке в Музее Эрьзи">Войти в выставку</a>
+  </div>
+</section>
+
+<section class="studio-observations" id="photocompositions" aria-labelledby="observations-title">
+  <header data-sunday-reveal>
+    <p class="sunday-kicker">Фотокомпозиции · {model.observationWorks.length}</p>
+    <div>
+      <h2 id="observations-title">Самое интересное возникает внезапно.</h2>
+      <blockquote>
+        <p>С детства меня завораживает игра солнечного света. За сюжетом бесполезно охотиться специально — он встречается в обычном дне.</p>
+        <cite>Никита Пичугин</cite>
+      </blockquote>
+    </div>
+  </header>
+  <ObservationWall works={model.observationWorks} />
+</section>

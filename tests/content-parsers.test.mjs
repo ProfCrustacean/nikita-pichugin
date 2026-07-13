@@ -5,7 +5,7 @@ import {
   parseSitemapImages,
   parseVcIncludeIds,
   textFromHtml
-} from "../scripts/wordpress-content.mjs";
+} from "../scripts/source-content.mjs";
 
 describe("WordPress content parsers", () => {
   it("extracts Visual Composer media IDs", () => {

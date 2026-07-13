@@ -19,7 +19,9 @@ describe("change-scope classification", () => {
     "src/pages/index.astro",
     "src/components/SundayHeader.astro",
     "src/styles/sunday.css",
-    "src/data/site-content.json"
+    "src/features/home/HomeHero.astro",
+    "src/config/site-config.json",
+    "src/lib/format.ts"
   ])("classifies %s as standard", (path) => {
     expect(classifyChangedPath(path).scope).toBe("standard");
   });
@@ -35,6 +37,8 @@ describe("change-scope classification", () => {
     "content-export/data/works.jsonl",
     "content/museum/editorial-overrides.json",
     "public/tours/erzia-pichugin/index.html",
+    "src/domain/catalog/repository.ts",
+    "src/generated/site-runtime.json",
     "src/lib/museum.ts",
     "scripts/health.mjs",
     "package-lock.json",
@@ -56,13 +60,13 @@ describe("change-scope classification", () => {
 
   it("keeps docs-only and UI-only sets on their intended scopes", () => {
     expect(classifyChangeSet(["README.md", "tests/site.test.mjs"]).scope).toBe("fast");
-    expect(classifyChangeSet(["src/pages/index.astro", "src/styles/sunday.css"]).scope).toBe(
+    expect(classifyChangeSet(["src/pages/index.astro", "src/styles/sunday.css", "tests/site.test.mjs"]).scope).toBe(
       "standard"
     );
   });
 
   it("elevates mixed scopes to release", () => {
-    expect(classifyChangeSet(["src/pages/index.astro", "tests/site.test.mjs"])).toMatchObject({
+    expect(classifyChangeSet(["src/pages/index.astro", "content-export/data/works.jsonl"])).toMatchObject({
       scope: "release",
       reason: "mixed_scopes"
     });

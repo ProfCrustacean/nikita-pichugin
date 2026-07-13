@@ -24,14 +24,15 @@ assert(!files.some((file) => file.startsWith(path.join(distRoot, "content"))), "
 assert(!files.some((file) => file.startsWith(path.join(distRoot, "fonts"))), "unused fonts leaked into production");
 const htmlFiles = files.filter((file) => file.endsWith(".html"));
 const canonicalHtmlFiles = htmlFiles;
-const works = await readJsonLines(path.join(projectRoot, "content-export", "data", "works.jsonl"));
-const assets = await readJsonLines(path.join(projectRoot, "content-export", "data", "assets.jsonl"));
-const sourceContent = JSON.parse(await readFile(path.join(projectRoot, "src", "data", "site-content.json"), "utf8"));
+const runtime = JSON.parse(await readFile(path.join(projectRoot, "src", "generated", "site-runtime.json"), "utf8"));
+const siteConfig = JSON.parse(await readFile(path.join(projectRoot, "src", "config", "site-config.json"), "utf8"));
+const tourInventory = JSON.parse(await readFile(path.join(projectRoot, "scripts", "erzia-tour.inventory.json"), "utf8"));
+const { works, assets, counts, legacyRedirects, routeRegistry } = runtime;
 const renderBlueprint = await readFile(path.join(projectRoot, "render.yaml"), "utf8");
 assert(renderBlueprint.includes("buildCommand: npm run build:deploy"), "Render must use the deploy-only build command");
 const detailFiles = works.map((work) => path.join(distRoot, "works", work.publicSlug, "index.html"));
 for (const file of detailFiles) assert(files.includes(file), `missing detail route ${path.relative(distRoot, file)}`);
-assert(detailFiles.length === 270, `expected 270 detail routes, found ${detailFiles.length}`);
+assert(detailFiles.length === counts.works, `expected ${counts.works} detail routes, found ${detailFiles.length}`);
 
 const worksHtml = await readFile(path.join(distRoot, "works", "index.html"), "utf8");
 const studioHtml = await readFile(path.join(distRoot, "studio", "index.html"), "utf8");
@@ -43,8 +44,14 @@ assert(health.status === "ok", "health endpoint must report ok");
 assert(/^(?:[a-f0-9]{7,40}|unknown)$/.test(health.commit), "health endpoint has an invalid commit");
 assert(health.catalog?.records === works.length, "health endpoint has a stale work count");
 assert(health.catalog?.assets === assets.length, "health endpoint has a stale asset count");
-assert((worksHtml.match(/<article[^>]*data-catalog-item[^>]*>/g) ?? []).length === 183, "works page must expose 183 artwork records");
-assert((studioHtml.match(/observation-wall__item/g) ?? []).length === 87, "studio page must expose 87 observations");
+assert(
+  (worksHtml.match(/<article[^>]*data-catalog-item[^>]*>/g) ?? []).length === counts.artworkWorks,
+  `works page must expose ${counts.artworkWorks} artwork records`
+);
+assert(
+  load(studioHtml)("a.observation-wall__item").length === counts.photographicWorks,
+  `studio page must expose ${counts.photographicWorks} observations`
+);
 assert(studioHtml.includes("Выставка в Музее Эрьзи"), "Erzia Museum exhibition tour is mislabeled");
 assert(
   load(studioHtml)(".studio-tour a[href='/exhibitions/erzia/']").length === 1,
@@ -76,7 +83,10 @@ for (const rendition of ["home-hero.webp", "works-hero.webp", "contact-hero.webp
 
 const tourRoot = path.join(distRoot, "tours", "erzia-pichugin");
 const tourFiles = files.filter((file) => file.startsWith(`${tourRoot}${path.sep}`));
-assert(tourFiles.length === 103, `expected the complete 103-file Erzia tour, found ${tourFiles.length}`);
+assert(
+  tourFiles.length === tourInventory.expectedFileCount,
+  `expected the complete ${tourInventory.expectedFileCount}-file Erzia tour, found ${tourFiles.length}`
+);
 
 const cacheManifestPath = path.join(tourRoot, "05.manifest");
 const cacheManifest = await readFile(cacheManifestPath, "utf8");
@@ -85,7 +95,11 @@ const cacheEntries = cacheManifest
   .split(/\r?\n/)
   .map((line) => line.trim())
   .filter((line) => line && line !== "CACHE MANIFEST" && !line.startsWith("#"));
-assert(cacheEntries.length === 101, `Erzia tour manifest must list 101 runtime files, found ${cacheEntries.length}`);
+const expectedCacheEntries = tourInventory.expectedFileCount - 2;
+assert(
+  cacheEntries.length === expectedCacheEntries,
+  `Erzia tour manifest must list ${expectedCacheEntries} runtime files, found ${cacheEntries.length}`
+);
 assert(cacheEntries.every((entry) => !/^https?:\/\//i.test(entry)), "Erzia tour manifest must be fully local");
 assert(cacheEntries.every((entry) => !entry.startsWith("/") && !entry.split("/").includes("..")), "Erzia tour manifest contains an unsafe path");
 assert(new Set(cacheEntries).size === cacheEntries.length, "Erzia tour manifest contains duplicate entries");
@@ -134,16 +148,7 @@ for (const file of tourFiles.filter((file) => /\.(?:html|xml|js|css|manifest)$/i
 assert(!forbiddenTourHosts.test(studioHtml), "remote museum or K360 URL leaked into studio page");
 assert(!forbiddenTourHosts.test(exhibitionHtml), "remote museum or K360 URL leaked into exhibition page");
 
-const expectedRedirects = [
-  ["/portfolio/galereya-rabot-hudozhnika-nikity-pichugina/", "/works/"],
-  ["/masterskaya-nikity-pichugina/", "/studio/"],
-  ["/contact-info/", "/contact/"],
-  ...sourceContent.artworks.map((sourceWork) => {
-    const work = works.find((candidate) => candidate.recordSource.some((source) => source.wpPortfolioId === sourceWork.wpId));
-    return [`/portfolios/${sourceWork.slug}/`, work ? `/works/${work.publicSlug}/` : "/works/"];
-  })
-];
-for (const [source, destination] of expectedRedirects) {
+for (const { source, destination } of legacyRedirects) {
   assert(
     renderBlueprint.includes(`source: ${source}\n        destination: ${destination}`),
     `Render redirect is missing or wrong: ${source} -> ${destination}`
@@ -191,7 +196,11 @@ for (const filename of previewReferences) {
 }
 
 const sitemap = await readFile(path.join(distRoot, "sitemap.xml"), "utf8");
-assert((sitemap.match(/<url>/g) ?? []).length === 276, "sitemap must contain 6 main routes and 270 detail routes");
+const registeredSitemapPaths = [...siteConfig.staticRoutes, ...routeRegistry.workPaths];
+assert(
+  (sitemap.match(/<url>/g) ?? []).length === registeredSitemapPaths.length,
+  `sitemap must contain ${registeredSitemapPaths.length} registered routes`
+);
 assert(sitemap.includes("/exhibitions/erzia/"), "Erzia exhibition route is missing from sitemap");
 assert(!fabricatedNumber.test(sitemap) && !/\/works\/np-/i.test(sitemap), "fabricated NP routes leaked into sitemap");
 
@@ -224,13 +233,7 @@ for (const file of canonicalHtmlFiles) {
 }
 
 console.log(
-  `[verify:site] ok: ${detailFiles.length} details, 183 artworks, 87 observations, ` +
+  `[verify:site] ok: ${detailFiles.length} details, ${counts.artworkWorks} artworks, ` +
+  `${counts.photographicWorks} observations, ` +
   `${previewReferences.size} presented assets, complete work relations, and a ${tourFiles.length}-file Erzia tour`
 );
-
-async function readJsonLines(filePath) {
-  return (await readFile(filePath, "utf8"))
-    .split(/\r?\n/)
-    .filter(Boolean)
-    .map((line) => JSON.parse(line));
-}

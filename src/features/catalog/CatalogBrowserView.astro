@@ -1,0 +1,85 @@
+---
+import MuseumWorkCard from "@components/MuseumWorkCard.astro";
+import type { MuseumWork } from "@lib/museum";
+import { buildCatalogBrowserModel } from "./catalog-model";
+import "./catalog-browser.css";
+
+interface Props {
+  works: MuseumWork[];
+}
+
+const { works } = Astro.props;
+const model = buildCatalogBrowserModel(works);
+---
+
+<section class="catalog-browser" data-catalog-browser>
+  <button
+    class="catalog-browser__filter-toggle"
+    type="button"
+    aria-controls="catalog-filter-panel"
+    aria-expanded="false"
+    data-catalog-filter-toggle
+  >Фильтры</button>
+
+  <div class="catalog-browser__toolbar" id="catalog-filter-panel" aria-label="Фильтры каталога">
+    <button class="catalog-browser__filter-close" type="button" data-catalog-filter-close>Закрыть</button>
+    <div class="catalog-browser__types" role="group" aria-label="Тип работы">
+      <button type="button" data-type="all" aria-pressed="true">Все <span>{model.counts.all}</span></button>
+      <button type="button" data-type="painting" aria-pressed="false">Живопись <span>{model.counts.painting}</span></button>
+      <button type="button" data-type="work on paper" aria-pressed="false">На бумаге <span>{model.counts.workOnPaper}</span></button>
+    </div>
+
+    <label class="catalog-browser__search">
+      <span>Поиск</span>
+      <input type="search" placeholder="Введите название" data-catalog-search />
+    </label>
+
+    <label>
+      <span>Период</span>
+      <select data-catalog-decade>
+        <option value="all">Все годы</option>
+        {model.decades.map((decade) => (
+          <option value={decade}>{decade === "unknown" ? "Без установленного года" : `${decade}-е`}</option>
+        ))}
+      </select>
+    </label>
+
+    <label>
+      <span>Тема</span>
+      <select data-catalog-genre>
+        <option value="all">Все темы</option>
+        {model.genres.map((genre) => <option value={genre.value}>{genre.label}</option>)}
+      </select>
+    </label>
+  </div>
+
+  <div class="catalog-browser__status" aria-live="polite">
+    <p><span data-catalog-count>{model.counts.all}</span> <span data-catalog-count-label>работ</span></p>
+    <button type="button" data-catalog-reset hidden>Сбросить фильтры</button>
+  </div>
+
+  <div class="catalog-browser__grid" data-catalog-grid>
+    {model.items.map((item) => (
+      <article
+        data-catalog-item
+        data-type={item.type}
+        data-decade={item.decade}
+        data-genres={item.genres.join("|")}
+        data-search={item.search}
+      >
+        <MuseumWorkCard work={item.work} />
+      </article>
+    ))}
+  </div>
+
+  <button class="catalog-browser__more" type="button" data-catalog-more hidden>Показать ещё</button>
+  <p class="catalog-browser__empty" data-catalog-empty hidden>Работ с такими параметрами нет.</p>
+</section>
+
+<script>
+  import { initCatalogBrowser } from "./catalog-controller";
+
+  document.querySelectorAll<HTMLElement>("[data-catalog-browser]").forEach((root) => {
+    initCatalogBrowser(root);
+  });
+</script>

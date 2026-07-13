@@ -9,7 +9,7 @@ import { siteNavigation } from "@lib/navigation";
       <img src="/favicon.png" width="58" height="58" alt="" />
     </a>
     <div class="sunday-footer__contact">
-      <p>Выставки и приобретение работ</p>
+      <p>{museumSiteContent.footerInquiryLabel}</p>
       <a href={`mailto:${museumSiteContent.contact.email}`}>{museumSiteContent.contact.email}</a>
       <a href={`tel:${museumSiteContent.contact.phoneHref}`}>{museumSiteContent.contact.phone}</a>
     </div>
@@ -22,6 +22,6 @@ import { siteNavigation } from "@lib/navigation";
       <a href={museumSiteContent.contact.telegram} rel="me">Telegram</a>
       <a href={museumSiteContent.contact.vk} rel="me">VK</a>
     </div>
-    <small>© {new Date().getFullYear()} Никита Пичугин</small>
+    <small>© {new Date().getFullYear()} {museumSiteContent.brand.ru}</small>
   </div>
 </footer>

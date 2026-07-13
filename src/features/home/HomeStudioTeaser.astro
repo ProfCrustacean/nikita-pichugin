@@ -1,0 +1,27 @@
+---
+import type { HomePageModel } from "./home-model";
+
+interface Props {
+  studio: HomePageModel["studio"];
+}
+
+const { studio } = Astro.props;
+---
+
+<section class="home-studio" aria-labelledby="studio-title">
+  <div class="home-studio__portrait" data-sunday-reveal>
+    <img
+      src={studio.portrait.src}
+      alt={studio.portrait.alt}
+      width={studio.portrait.width}
+      height={studio.portrait.height}
+      loading="lazy"
+    />
+  </div>
+  <div class="home-studio__copy" data-sunday-reveal>
+    <p class="sunday-kicker">{studio.kicker}</p>
+    <h2 id="studio-title">{studio.heading}</h2>
+    <p>{studio.body}</p>
+    <a class="sunday-link" href={studio.href}>{studio.cta}</a>
+  </div>
+</section>

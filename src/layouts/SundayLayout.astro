@@ -2,6 +2,7 @@
 import "../styles/sunday.css";
 import SundayHeader from "@components/SundayHeader.astro";
 import SundayFooter from "@components/SundayFooter.astro";
+import { museumSiteContent } from "@lib/museum";
 
 interface Props {
   title?: string;
@@ -19,7 +20,7 @@ interface Props {
 
 const {
   title,
-  description = "Мастерская художника Никиты Пичугина: живопись, собрание работ и контакты.",
+  description = museumSiteContent.defaultDescription,
   image = "/museum/previews/eabbd292a000b7c067885d203f5c3e60578242fc787621226fdade3397b96c45.webp",
   imageAlt = "Живописная работа Никиты Пичугина",
   ogType = "website",

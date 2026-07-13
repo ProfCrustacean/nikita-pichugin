@@ -1,0 +1,18 @@
+---
+import type { HomePageModel } from "./home-model";
+
+interface Props {
+  intro: HomePageModel["intro"];
+}
+
+const { intro } = Astro.props;
+---
+
+<section class="home-intro" data-sunday-reveal>
+  <p class="sunday-kicker">{intro.kicker}</p>
+  <div>
+    <h2>{intro.headingLines[0]}<br />{intro.headingLines[1]}</h2>
+    <p>{intro.body}</p>
+    <a class="sunday-link" href={intro.href}>{intro.cta}</a>
+  </div>
+</section>

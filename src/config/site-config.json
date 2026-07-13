@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.0.0",
+  "brand": {
+    "ru": "Никита Пичугин",
+    "en": "Nikita Pichugin"
+  },
+  "defaultDescription": "Мастерская художника Никиты Пичугина: живопись, собрание работ и контакты.",
+  "footerInquiryLabel": "Выставки и приобретение работ",
+  "exhibitionTourPath": "/exhibitions/erzia/",
+  "navigation": [
+    { "label": "Работы", "href": "/works/" },
+    { "label": "Архив", "href": "/archive/" },
+    { "label": "Выставка", "href": "/exhibitions/erzia/" },
+    { "label": "Мастерская", "href": "/studio/" },
+    { "label": "Контакты", "href": "/contact/" }
+  ],
+  "contact": {
+    "phone": "8 (927) 177-68-78",
+    "phoneHref": "+79271776878",
+    "email": "x-tarmit@yandex.ru",
+    "vk": "https://vk.com/id9435682",
+    "telegram": "https://t.me/nikitapichygin"
+  },
+  "portraitAssetId": "asset_7765879c35ce1293",
+  "staticRoutes": [
+    "/",
+    "/works/",
+    "/archive/",
+    "/studio/",
+    "/exhibitions/erzia/",
+    "/contact/"
+  ]
+}

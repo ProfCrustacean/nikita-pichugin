@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { load } from "cheerio";
@@ -8,7 +9,14 @@ export const DEFAULT_CHANGED_FROM = "HEAD^";
 export const DEFAULT_TIMEOUT_MS = 8_000;
 export const REPRESENTATIVE_PATHS = ["/", "/works/", "/site/home-hero.webp", "/favicon.png"];
 
-const SITE_WIDE_PATHS = ["/", "/works/", "/studio/", "/contact/", "/exhibitions/erzia/"];
+const runtime = createRequire(import.meta.url)("../src/generated/site-runtime.json");
+const REPRESENTATIVE_WORK_PATHS = [
+  runtime.fixtures.artworkSlug,
+  runtime.fixtures.photographicWorkSlug,
+  runtime.fixtures.multiAssetWorkSlug
+].map((slug) => `/works/${slug}/`);
+const SITE_WIDE_PATHS = ["/", "/archive/", "/works/", "/studio/", "/contact/", "/exhibitions/erzia/"];
+const CATALOG_PATHS = ["/", "/archive/", "/works/", "/studio/", ...REPRESENTATIVE_WORK_PATHS];
 const HTML_EXTENSIONS = new Set([".htm", ".html"]);
 const PAGE_REFERENCE_RULES = new Map([
   [
@@ -169,17 +177,37 @@ export function changedPathsFromFiles(files) {
       continue;
     }
 
-    if (/^(?:src\/(?:components|layouts|styles|data)\/|src\/lib\/)/.test(file)) {
+    if (file === "src/config/site-config.json" || /^(?:src\/(?:components|layouts|styles)\/|src\/features\/shell\/|src\/lib\/(?!museum\.ts$))/.test(file)) {
       SITE_WIDE_PATHS.forEach((sitePath) => paths.add(sitePath));
       continue;
     }
 
-    if (/^(?:content-export\/|public\/museum\/|src\/lib\/museum\.ts$)/.test(file)) {
-      ["/", "/works/", "/studio/"].forEach((sitePath) => paths.add(sitePath));
+    const featureRoute = routeFromFeatureFile(file);
+    if (featureRoute) {
+      featureRoute.forEach((sitePath) => paths.add(sitePath));
+      continue;
+    }
+
+    if (/^(?:content-export\/|public\/museum\/|src\/(?:generated\/|domain\/catalog\/)|src\/lib\/museum\.ts$)/.test(file)) {
+      CATALOG_PATHS.forEach((sitePath) => paths.add(sitePath));
     }
   }
 
   return [...paths].sort();
+}
+
+function routeFromFeatureFile(file) {
+  const match = file.match(/^src\/features\/([^/]+)\//);
+  if (!match) return null;
+  const feature = match[1];
+  if (["home", "journey"].includes(feature)) return ["/"];
+  if (feature === "catalog") return ["/works/"];
+  if (feature === "work-detail") return REPRESENTATIVE_WORK_PATHS;
+  if (feature === "archive") return ["/archive/"];
+  if (feature === "contact") return ["/contact/"];
+  if (feature === "studio") return ["/studio/"];
+  if (feature === "tour") return ["/exhibitions/erzia/"];
+  return SITE_WIDE_PATHS;
 }
 
 export function routeFromPageFile(file) {

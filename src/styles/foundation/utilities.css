@@ -1,0 +1,38 @@
+.sunday-kicker {
+  margin: 0;
+  font: 600 10px/1.25 var(--sans);
+  letter-spacing: 0.19em;
+  text-transform: uppercase;
+}
+
+.sunday-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  width: max-content;
+  padding-bottom: 8px;
+  border-bottom: 1px solid currentColor;
+  font: 600 10px/1 var(--sans);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sunday-link::after {
+  content: "↗";
+  font-size: 13px;
+  transition: transform 180ms ease;
+}
+
+.sunday-link:hover::after,
+.sunday-link:focus-visible::after { transform: translate(3px, -3px); }
+
+[data-sunday-reveal] {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 700ms ease, transform 850ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+[data-sunday-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}

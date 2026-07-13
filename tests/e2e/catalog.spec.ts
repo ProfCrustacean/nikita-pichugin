@@ -1,20 +1,21 @@
 import { expect, test } from "@playwright/test";
 import { elementFitsViewport, horizontalOverflow } from "./helpers";
+import { catalogCounts, workOnPaperCount } from "./runtime";
 
 test("catalog exposes all artworks and its filters work", async ({ page }) => {
   await page.goto("/works/");
-  await expect(page.locator("[data-catalog-item]")).toHaveCount(183);
-  await expect(page.locator("[data-catalog-count]")).toHaveText("183");
+  await expect(page.locator("[data-catalog-item]")).toHaveCount(catalogCounts.artworkWorks);
+  await expect(page.locator("[data-catalog-count]")).toHaveText(String(catalogCounts.artworkWorks));
 
   await page.locator("button[data-type='work on paper']").click();
   await expect(page.locator("button[data-type='work on paper']")).toHaveAttribute("aria-pressed", "true");
-  await expect(page.locator("[data-catalog-count]")).toHaveText("9");
-  await expect(page.locator("[data-catalog-item]:not([hidden])")).toHaveCount(9);
+  await expect(page.locator("[data-catalog-count]")).toHaveText(String(workOnPaperCount));
+  await expect(page.locator("[data-catalog-item]:not([hidden])")).toHaveCount(workOnPaperCount);
 
   await page.locator("[data-catalog-search]").fill("Гурзуф");
   await expect(page.locator("[data-catalog-count]")).toHaveText("0");
   await page.locator("[data-catalog-reset]").click();
-  await expect(page.locator("[data-catalog-count]")).toHaveText("183");
+  await expect(page.locator("[data-catalog-count]")).toHaveText(String(catalogCounts.artworkWorks));
   expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
 });
 
