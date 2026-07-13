@@ -11,6 +11,7 @@ interface Props {
   ogType?: "website" | "article";
   headerTone?: "light" | "dark";
   bodyClass?: string;
+  noHeader?: boolean;
   noFooter?: boolean;
   noIndex?: boolean;
   jsonLd?: Record<string, unknown>;
@@ -24,6 +25,7 @@ const {
   ogType = "website",
   headerTone = "dark",
   bodyClass = "",
+  noHeader = false,
   noFooter = false,
   noIndex = false,
   jsonLd
@@ -61,7 +63,7 @@ const socialImage = new URL(image, Astro.site ?? Astro.url.origin);
   </head>
   <body class={bodyClass} data-header-tone={headerTone}>
     <a class="sunday-skip" href="#content">К содержанию</a>
-    <SundayHeader />
+    {!noHeader && <SundayHeader />}
     <main id="content">
       <slot />
     </main>

@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import { getWorkHref, museumWorks } from "@lib/museum";
 
-const staticPaths = ["/", "/works/", "/archive/", "/studio/", "/contact/"];
+const staticPaths = ["/", "/works/", "/archive/", "/studio/", "/exhibitions/erzia/", "/contact/"];
 
 export const GET: APIRoute = ({ site }) => {
   const base = site ?? new URL("https://nikita-pichugin.onrender.com");

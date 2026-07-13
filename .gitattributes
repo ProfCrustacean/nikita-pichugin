@@ -1,2 +1,3 @@
 content-export/exports/lido.xml -whitespace
 content-export/schema/*.xsd -whitespace
+public/tours/erzia-pichugin/** -text -whitespace

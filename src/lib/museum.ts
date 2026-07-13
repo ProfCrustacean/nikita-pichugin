@@ -110,7 +110,7 @@ interface MuseumSiteContent {
   brand: { ru: string; en: string };
   introduction: { ru: string; en: string };
   photoWorksIntroduction: string;
-  exhibitionTourUrl: string;
+  exhibitionTourPath: string;
   contact: {
     phone: string;
     phoneHref: string;

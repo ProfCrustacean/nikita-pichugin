@@ -1018,7 +1018,7 @@ function buildSiteContent({ homeHtml, photoWorksPage, contactPage, portraitAsset
       .replace(/\b\d{5}(?:,\d{5})+\b/g, " ")
       .replace(/\s+/g, " ")
       .trim(),
-    exhibitionTourUrl: homeHtml.match(/https:\/\/erzia-museum\.ru\/stranicy\/12029\/?/)?.[0] || null,
+    exhibitionTourPath: "/exhibitions/erzia/",
     contact: {
       phone: contactText.match(/8\s*\(?927\)?\s*177[-\s]*68[-\s]*78/)?.[0]?.replace(/\s+/g, " ") || null,
       phoneHref: "+79271776878",

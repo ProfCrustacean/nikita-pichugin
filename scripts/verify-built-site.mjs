@@ -35,15 +35,84 @@ assert(detailFiles.length === 270, `expected 270 detail routes, found ${detailFi
 const worksHtml = await readFile(path.join(distRoot, "works", "index.html"), "utf8");
 const studioHtml = await readFile(path.join(distRoot, "studio", "index.html"), "utf8");
 const homeHtml = await readFile(path.join(distRoot, "index.html"), "utf8");
+const exhibitionHtml = await readFile(path.join(distRoot, "exhibitions", "erzia", "index.html"), "utf8");
 assert((worksHtml.match(/<article[^>]*data-catalog-item[^>]*>/g) ?? []).length === 183, "works page must expose 183 artwork records");
 assert((studioHtml.match(/observation-wall__item/g) ?? []).length === 87, "studio page must expose 87 observations");
 assert(studioHtml.includes("Выставка в Музее Эрьзи"), "Erzia Museum exhibition tour is mislabeled");
+assert(
+  load(studioHtml)("a[href='/exhibitions/erzia/']").length === 1,
+  "studio page must link to the locally hosted Erzia exhibition"
+);
+assert(
+  load(exhibitionHtml)("iframe[src='/tours/erzia-pichugin/index.html']").length === 1,
+  "Erzia exhibition page must embed the local tour"
+);
 assert(!homeHtml.includes("noindex"), "homepage must be indexable");
 assert(!homeHtml.includes("prototype-switcher"), "prototype switcher leaked into homepage");
 assert(!files.some((file) => file.includes(`${path.sep}portfolios${path.sep}`) && file.endsWith(".html")), "portfolio redirect HTML leaked into production");
 for (const rendition of ["home-hero.webp", "works-hero.webp", "contact-hero.webp"]) {
   assert(files.includes(path.join(distRoot, "site", rendition)), `missing high-resolution rendition ${rendition}`);
 }
+
+const tourRoot = path.join(distRoot, "tours", "erzia-pichugin");
+const tourFiles = files.filter((file) => file.startsWith(`${tourRoot}${path.sep}`));
+assert(tourFiles.length === 103, `expected the complete 103-file Erzia tour, found ${tourFiles.length}`);
+
+const cacheManifestPath = path.join(tourRoot, "05.manifest");
+const cacheManifest = await readFile(cacheManifestPath, "utf8");
+assert(cacheManifest.trimStart().startsWith("CACHE MANIFEST"), "Erzia tour cache manifest has an invalid header");
+const cacheEntries = cacheManifest
+  .split(/\r?\n/)
+  .map((line) => line.trim())
+  .filter((line) => line && line !== "CACHE MANIFEST" && !line.startsWith("#"));
+assert(cacheEntries.length === 101, `Erzia tour manifest must list 101 runtime files, found ${cacheEntries.length}`);
+assert(cacheEntries.every((entry) => !/^https?:\/\//i.test(entry)), "Erzia tour manifest must be fully local");
+assert(cacheEntries.every((entry) => !entry.startsWith("/") && !entry.split("/").includes("..")), "Erzia tour manifest contains an unsafe path");
+assert(new Set(cacheEntries).size === cacheEntries.length, "Erzia tour manifest contains duplicate entries");
+
+const expectedTourFiles = new Set(["index.html", "05.manifest", ...cacheEntries]);
+const actualTourFiles = new Set(tourFiles.map((file) => path.relative(tourRoot, file).split(path.sep).join("/")));
+assert(
+  expectedTourFiles.size === actualTourFiles.size && [...expectedTourFiles].every((file) => actualTourFiles.has(file)),
+  "Erzia tour package and its manifest differ"
+);
+
+for (const relativeFile of expectedTourFiles) {
+  const fileStat = await stat(path.join(tourRoot, relativeFile)).catch(() => null);
+  assert(fileStat?.size > 0, `missing or empty Erzia tour file ${relativeFile}`);
+}
+
+for (const relativeFile of [
+  "index.html",
+  "museum-01.xml",
+  "pano2vr_player.js",
+  "skin.js",
+  "images/05_o_0.jpg",
+  "images/01_o_preview_0.jpg"
+]) {
+  assert(actualTourFiles.has(relativeFile), `missing representative Erzia tour asset ${relativeFile}`);
+}
+
+const tourXml = await readFile(path.join(tourRoot, "museum-01.xml"), "utf8");
+const startNode = tourXml.match(/<tour\b[^>]*\bstart="([^"]+)"/)?.[1];
+const panoramaIds = [...tourXml.matchAll(/<panorama\b[^>]*\bid="([^"]+)"/g)].map((match) => match[1]);
+const hotspotTargets = [...tourXml.matchAll(/<hotspot\b[^>]*\burl="\{([^}]+)\}"/g)].map((match) => match[1]);
+const panoramaMedia = [...tourXml.matchAll(/\b(?:tile\durl|prev\durl)="([^"]+)"/g)].map((match) => match[1]);
+assert(panoramaIds.length === 5, `Erzia tour must contain 5 panoramas, found ${panoramaIds.length}`);
+assert(new Set(panoramaIds).size === panoramaIds.length, "Erzia tour panorama IDs must be unique");
+assert(startNode && panoramaIds.includes(startNode), "Erzia tour start panorama is missing");
+assert(hotspotTargets.length === 8, `Erzia tour must contain 8 navigation hotspots, found ${hotspotTargets.length}`);
+assert(hotspotTargets.every((target) => panoramaIds.includes(target)), "Erzia tour has a hotspot with a missing destination");
+assert(panoramaMedia.length === 60, `Erzia tour must reference 60 panorama images, found ${panoramaMedia.length}`);
+assert(panoramaMedia.every((file) => actualTourFiles.has(file)), "Erzia tour configuration references a missing panorama image");
+
+const forbiddenTourHosts = /(?:erzia-museum\.ru|k360\.ru)/i;
+for (const file of tourFiles.filter((file) => /\.(?:html|xml|js|css|manifest)$/i.test(file))) {
+  const source = await readFile(file, "utf8");
+  assert(!forbiddenTourHosts.test(source), `remote museum or K360 URL leaked into ${path.relative(distRoot, file)}`);
+}
+assert(!forbiddenTourHosts.test(studioHtml), "remote museum or K360 URL leaked into studio page");
+assert(!forbiddenTourHosts.test(exhibitionHtml), "remote museum or K360 URL leaked into exhibition page");
 
 const expectedRedirects = [
   ["/portfolio/galereya-rabot-hudozhnika-nikity-pichugina/", "/works/"],
@@ -101,7 +170,8 @@ for (const filename of previewReferences) {
 }
 
 const sitemap = await readFile(path.join(distRoot, "sitemap.xml"), "utf8");
-assert((sitemap.match(/<url>/g) ?? []).length === 275, "sitemap must contain 5 main routes and 270 detail routes");
+assert((sitemap.match(/<url>/g) ?? []).length === 276, "sitemap must contain 6 main routes and 270 detail routes");
+assert(sitemap.includes("/exhibitions/erzia/"), "Erzia exhibition route is missing from sitemap");
 assert(!fabricatedNumber.test(sitemap) && !/\/works\/np-/i.test(sitemap), "fabricated NP routes leaked into sitemap");
 
 for (const work of works) {
@@ -134,7 +204,7 @@ for (const file of canonicalHtmlFiles) {
 
 console.log(
   `[verify:site] ok: ${detailFiles.length} details, 183 artworks, 87 observations, ` +
-  `${previewReferences.size} presented assets with complete work relations`
+  `${previewReferences.size} presented assets, complete work relations, and a ${tourFiles.length}-file Erzia tour`
 );
 
 async function readJsonLines(filePath) {

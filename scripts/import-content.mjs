@@ -101,7 +101,7 @@ async function main() {
     caption: "Портрет художника"
   });
   const intro = extractIntro(home.content?.rendered || "", homeHtml);
-  const virtualTourUrl = extractVirtualTourUrl(home.content?.rendered || "", homeHtml);
+  const virtualTourPath = "/exhibitions/erzia/";
 
   const siteContent = {
     brand: {
@@ -111,7 +111,7 @@ async function main() {
     intro: {
       text: intro.text,
       englishText: intro.englishText,
-      virtualTourUrl
+      virtualTourPath
     },
     portrait,
     navigation: NAVIGATION,
@@ -148,12 +148,6 @@ function extractIntro(restHtml, fallbackHtml) {
     text: ru?.[0] || "Здравствуйте! Меня зовут Никита Пичугин, я художник. Добро пожаловать на мой сайт.",
     englishText: en?.[0] || "Hello! My name is Nikita Pichugin, I am an artist. Welcome to my website."
   };
-}
-
-function extractVirtualTourUrl(restHtml, fallbackHtml) {
-  const text = restHtml || fallbackHtml;
-  const match = text.match(/https:\/\/erzia-museum\.ru\/stranicy\/12029\/?/);
-  return match?.[0] || "https://erzia-museum.ru/stranicy/12029/";
 }
 
 function parseContact(restHtml, fallbackHtml) {

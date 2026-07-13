@@ -9,5 +9,6 @@
       "@lib/*": ["src/lib/*"]
     },
     "types": ["astro/client", "node"]
-  }
+  },
+  "exclude": ["dist/**", "public/tours/**"]
 }

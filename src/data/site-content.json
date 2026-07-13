@@ -6,7 +6,7 @@
   "intro": {
     "text": "Здравствуйте! Меня зовут Никита Пичугин, я художник. Добро пожаловать на мой сайт.",
     "englishText": "Hello! My name is Nikita Pichugin, I am an artist. Welcome to my website.",
-    "virtualTourUrl": "https://erzia-museum.ru/stranicy/12029/"
+    "virtualTourPath": "/exhibitions/erzia/"
   },
   "portrait": {
     "localPath": "/content/images/home-portrait/nikita-pichugin/01.webp",
