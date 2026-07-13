@@ -28,6 +28,7 @@ const works = await readJsonLines(path.join(projectRoot, "content-export", "data
 const assets = await readJsonLines(path.join(projectRoot, "content-export", "data", "assets.jsonl"));
 const sourceContent = JSON.parse(await readFile(path.join(projectRoot, "src", "data", "site-content.json"), "utf8"));
 const renderBlueprint = await readFile(path.join(projectRoot, "render.yaml"), "utf8");
+assert(renderBlueprint.includes("buildCommand: npm run build:deploy"), "Render must use the deploy-only build command");
 const detailFiles = works.map((work) => path.join(distRoot, "works", work.publicSlug, "index.html"));
 for (const file of detailFiles) assert(files.includes(file), `missing detail route ${path.relative(distRoot, file)}`);
 assert(detailFiles.length === 270, `expected 270 detail routes, found ${detailFiles.length}`);
@@ -37,6 +38,11 @@ const studioHtml = await readFile(path.join(distRoot, "studio", "index.html"), "
 const contactHtml = await readFile(path.join(distRoot, "contact", "index.html"), "utf8");
 const homeHtml = await readFile(path.join(distRoot, "index.html"), "utf8");
 const exhibitionHtml = await readFile(path.join(distRoot, "exhibitions", "erzia", "index.html"), "utf8");
+const health = JSON.parse(await readFile(path.join(distRoot, "health.json"), "utf8"));
+assert(health.status === "ok", "health endpoint must report ok");
+assert(/^(?:[a-f0-9]{7,40}|unknown)$/.test(health.commit), "health endpoint has an invalid commit");
+assert(health.catalog?.records === works.length, "health endpoint has a stale work count");
+assert(health.catalog?.assets === assets.length, "health endpoint has a stale asset count");
 assert((worksHtml.match(/<article[^>]*data-catalog-item[^>]*>/g) ?? []).length === 183, "works page must expose 183 artwork records");
 assert((studioHtml.match(/observation-wall__item/g) ?? []).length === 87, "studio page must expose 87 observations");
 assert(studioHtml.includes("Выставка в Музее Эрьзи"), "Erzia Museum exhibition tour is mislabeled");
