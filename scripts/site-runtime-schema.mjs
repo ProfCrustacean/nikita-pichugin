@@ -149,7 +149,7 @@ export const siteConfigSchema = {
     "staticRoutes"
   ],
   properties: {
-    schemaVersion: { type: "string", minLength: 1 },
+    schemaVersion: { const: SITE_RUNTIME_SCHEMA_VERSION },
     brand: { $ref: "#/$defs/localizedText" },
     defaultDescription: { type: "string", minLength: 1 },
     footerInquiryLabel: { type: "string", minLength: 1 },

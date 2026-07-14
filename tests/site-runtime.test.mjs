@@ -8,6 +8,7 @@ import {
   deriveLegacyRedirects,
   loadCanonicalCatalog,
   serializeSiteRuntime,
+  validateSiteConfig,
   validateSiteRuntime
 } from "../scripts/site-runtime.mjs";
 import {
@@ -55,6 +56,24 @@ describe("site runtime generator", () => {
     const unknown = structuredClone(runtime);
     unknown.works[0].unexpected = true;
     expect(validateSiteRuntime(unknown).join("\n")).toContain("additional properties");
+  });
+
+  it("validates site copy, navigation routes, and configured assets without rebuilding the catalog", () => {
+    expect(validateSiteConfig(source.siteConfig, { assets: runtime.assets })).toEqual([]);
+
+    const invalid = structuredClone(source.siteConfig);
+    invalid.navigation.push({ label: "Повтор", href: "/works/" });
+    invalid.exhibitionTourPath = "/missing/";
+    invalid.portraitAssetId = "asset_0000000000000000";
+    invalid.unexpected = true;
+    const errors = validateSiteConfig(invalid, { assets: runtime.assets }).join("\n");
+    expect(errors).toContain("additional properties");
+
+    delete invalid.unexpected;
+    const semanticErrors = validateSiteConfig(invalid, { assets: runtime.assets }).join("\n");
+    expect(semanticErrors).toContain("duplicate route");
+    expect(semanticErrors).toContain("exhibitionTourPath");
+    expect(semanticErrors).toContain("missing asset");
   });
 
   it("preserves catalog order, links, and source counts while dropping archival-only fields", () => {

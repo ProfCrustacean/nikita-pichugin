@@ -49,6 +49,33 @@ const parseJsonLines = (source, label) => source
 const formatSchemaErrors = (label, errors = []) => errors
   .map((error) => `${label}${error.instancePath || "/"}: ${error.message}`);
 
+export function validateSiteConfig(siteConfig, { assets = [] } = {}) {
+  if (!validateSiteConfigSchema(siteConfig)) {
+    return formatSchemaErrors("site-config", validateSiteConfigSchema.errors);
+  }
+
+  const errors = [];
+  const staticRoutes = new Set(siteConfig.staticRoutes);
+  const navigationHrefs = new Set();
+  if (!staticRoutes.has("/")) errors.push("site-config/staticRoutes: homepage route is required");
+  if (!staticRoutes.has(siteConfig.exhibitionTourPath)) {
+    errors.push("site-config/exhibitionTourPath: route must be registered in staticRoutes");
+  }
+  for (const item of siteConfig.navigation) {
+    if (!staticRoutes.has(item.href)) {
+      errors.push(`site-config/navigation: route is not registered: ${item.href}`);
+    }
+    if (navigationHrefs.has(item.href)) {
+      errors.push(`site-config/navigation: duplicate route: ${item.href}`);
+    }
+    navigationHrefs.add(item.href);
+  }
+  if (assets.length > 0 && !assets.some((asset) => asset.assetId === siteConfig.portraitAssetId)) {
+    errors.push(`site-config/portraitAssetId: missing asset ${siteConfig.portraitAssetId}`);
+  }
+  return errors;
+}
+
 const pathnameFromUrl = (url) => {
   const pathname = new URL(url).pathname;
   return pathname.endsWith("/") ? pathname : `${pathname}/`;
@@ -160,8 +187,9 @@ export async function loadCanonicalCatalog(projectRoot = PROJECT_ROOT) {
   }
   const siteConfigSource = await readFile(path.join(projectRoot, SITE_CONFIG_PATH), "utf8");
   loaded.siteConfig = JSON.parse(siteConfigSource);
-  if (!validateSiteConfigSchema(loaded.siteConfig)) {
-    throw new Error(formatSchemaErrors("site-config", validateSiteConfigSchema.errors).join("\n"));
+  const siteConfigErrors = validateSiteConfig(loaded.siteConfig, { assets: loaded.assets });
+  if (siteConfigErrors.length > 0) {
+    throw new Error(siteConfigErrors.join("\n"));
   }
 
   const bundle = {
@@ -201,14 +229,8 @@ export function buildSiteRuntime(source) {
   assertSourceParity(source);
   const works = source.works.map(projectWork);
   const assets = source.assets.map(projectAsset);
-  if (!assets.some((asset) => asset.assetId === source.siteConfig.portraitAssetId)) {
-    throw new Error(`Site config portrait asset is missing: ${source.siteConfig.portraitAssetId}`);
-  }
-  for (const item of source.siteConfig.navigation) {
-    if (!source.siteConfig.staticRoutes.includes(item.href)) {
-      throw new Error(`Site navigation route is not registered: ${item.href}`);
-    }
-  }
+  const siteConfigErrors = validateSiteConfig(source.siteConfig, { assets });
+  if (siteConfigErrors.length > 0) throw new Error(siteConfigErrors.join("\n"));
   const workPaths = works.map((work) => `/works/${work.publicSlug}/`);
   const artwork = works.find((work) => work.recordType === "artwork");
   const photographicWork = works.find((work) => work.recordType === "photographic_work");
