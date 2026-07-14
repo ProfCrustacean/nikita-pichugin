@@ -22,6 +22,10 @@ function assert(condition, message) {
 const files = await listFiles(distRoot);
 assert(!files.some((file) => file.startsWith(path.join(distRoot, "content"))), "unused public/content leaked into production");
 assert(!files.some((file) => file.startsWith(path.join(distRoot, "fonts"))), "unused fonts leaked into production");
+assert(
+  !files.some((file) => file.startsWith(`${path.join(distRoot, "exhibitions")}${path.sep}`)),
+  "removed exhibition routes leaked into production"
+);
 const htmlFiles = files.filter((file) => file.endsWith(".html"));
 const canonicalHtmlFiles = htmlFiles;
 const runtime = JSON.parse(await readFile(path.join(projectRoot, "src", "generated", "site-runtime.json"), "utf8"));
@@ -38,7 +42,6 @@ const worksHtml = await readFile(path.join(distRoot, "works", "index.html"), "ut
 const studioHtml = await readFile(path.join(distRoot, "studio", "index.html"), "utf8");
 const contactHtml = await readFile(path.join(distRoot, "contact", "index.html"), "utf8");
 const homeHtml = await readFile(path.join(distRoot, "index.html"), "utf8");
-const exhibitionHtml = await readFile(path.join(distRoot, "exhibitions", "erzia", "index.html"), "utf8");
 const health = JSON.parse(await readFile(path.join(distRoot, "health.json"), "utf8"));
 assert(health.status === "ok", "health endpoint must report ok");
 assert(/^(?:[a-f0-9]{7,40}|unknown)$/.test(health.commit), "health endpoint has an invalid commit");
@@ -54,26 +57,35 @@ assert(
 );
 assert(studioHtml.includes("Выставка в Музее Эрьзи"), "Erzia Museum exhibition tour is mislabeled");
 assert(
-  load(studioHtml)(".studio-tour a[href='/exhibitions/erzia/']").length === 1,
-  "studio page must link to the locally hosted Erzia exhibition"
+  load(studioHtml)(".studio-tour a[href='/#erzia-tour']").length === 1,
+  "studio page must link to the homepage Erzia tour"
 );
 const homeDocument = load(homeHtml);
 for (const navigationLabel of ["Основная навигация", "Нижняя навигация"]) {
-  const exhibitionLinks = homeDocument(`nav[aria-label='${navigationLabel}'] a[href='/exhibitions/erzia/']`)
+  const exhibitionLinks = homeDocument(`nav[aria-label='${navigationLabel}'] a[href='/#erzia-tour']`)
     .filter((_, element) => homeDocument(element).text().trim() === "Выставка");
-  assert(exhibitionLinks.length === 1, `${navigationLabel} must expose one local exhibition link`);
+  assert(exhibitionLinks.length === 1, `${navigationLabel} must expose one homepage tour link`);
 }
-for (const [entry, html] of [["home", homeHtml], ["contact", contactHtml]]) {
+for (const [entry, html] of [["contact", contactHtml], ["studio", studioHtml]]) {
   const document = load(html);
   const links = document(`a[data-exhibition-entry='${entry}']`);
   assert(links.length === 1, `${entry} page must expose one contextual exhibition entry`);
-  assert(links.attr("href") === "/exhibitions/erzia/", `${entry} exhibition entry must stay local`);
+  assert(links.attr("href") === "/#erzia-tour", `${entry} exhibition entry must target the homepage tour`);
   assert(!links.attr("target"), `${entry} exhibition entry must open in the same tab`);
 }
-assert(
-  load(exhibitionHtml)("iframe[src='/tours/erzia-pichugin/index.html']").length === 1,
-  "Erzia exhibition page must embed the local tour"
+
+const embeddedTour = homeDocument("section#erzia-tour[data-tour-shell]");
+assert(embeddedTour.length === 1, "homepage must expose one embedded Erzia tour section");
+const embeddedTourFrame = embeddedTour.find(
+  "iframe[data-tour-frame][data-tour-src='/tours/erzia-pichugin/index.html']"
 );
+assert(
+  embeddedTourFrame.length === 1,
+  "homepage Erzia section must declare the complete local tour"
+);
+assert(embeddedTourFrame.attr("src") === undefined, "homepage Erzia iframe must stay deferred before interaction");
+assert(embeddedTour.find("[data-tour-enter]").length === 1, "homepage Erzia section is missing its enter control");
+assert(embeddedTour.find("[data-tour-exit]").length === 1, "homepage Erzia section is missing its exit control");
 assert(!homeHtml.includes("noindex"), "homepage must be indexable");
 assert(!homeHtml.includes("prototype-switcher"), "prototype switcher leaked into homepage");
 assert(!files.some((file) => file.includes(`${path.sep}portfolios${path.sep}`) && file.endsWith(".html")), "portfolio redirect HTML leaked into production");
@@ -146,7 +158,7 @@ for (const file of tourFiles.filter((file) => /\.(?:html|xml|js|css|manifest)$/i
   assert(!forbiddenTourHosts.test(source), `remote museum or K360 URL leaked into ${path.relative(distRoot, file)}`);
 }
 assert(!forbiddenTourHosts.test(studioHtml), "remote museum or K360 URL leaked into studio page");
-assert(!forbiddenTourHosts.test(exhibitionHtml), "remote museum or K360 URL leaked into exhibition page");
+assert(!forbiddenTourHosts.test(homeHtml), "remote museum or K360 URL leaked into homepage tour");
 
 for (const { source, destination } of legacyRedirects) {
   assert(
@@ -201,7 +213,7 @@ assert(
   (sitemap.match(/<url>/g) ?? []).length === registeredSitemapPaths.length,
   `sitemap must contain ${registeredSitemapPaths.length} registered routes`
 );
-assert(sitemap.includes("/exhibitions/erzia/"), "Erzia exhibition route is missing from sitemap");
+assert(!sitemap.includes("/exhibitions/"), "removed exhibition routes leaked into sitemap");
 assert(!fabricatedNumber.test(sitemap) && !/\/works\/np-/i.test(sitemap), "fabricated NP routes leaked into sitemap");
 
 for (const work of works) {
@@ -235,5 +247,5 @@ for (const file of canonicalHtmlFiles) {
 console.log(
   `[verify:site] ok: ${detailFiles.length} details, ${counts.artworkWorks} artworks, ` +
   `${counts.photographicWorks} observations, ` +
-  `${previewReferences.size} presented assets, complete work relations, and a ${tourFiles.length}-file Erzia tour`
+  `${previewReferences.size} presented assets, complete work relations, and a deferred ${tourFiles.length}-file Erzia tour on home`
 );

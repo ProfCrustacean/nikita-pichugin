@@ -76,6 +76,22 @@ test("mobile headings and catalog controls stay usable", async ({ page }) => {
     .toBe(await page.evaluate(() => document.documentElement.clientWidth));
 });
 
+test("mobile exhibition anchor enters and leaves the homepage tour", async ({ page }) => {
+  await page.goto("/#erzia-tour");
+  const tour = page.locator("section#erzia-tour[data-tour-shell]");
+  const frame = tour.locator("iframe[data-tour-frame]");
+  const enter = tour.locator("[data-tour-enter]");
+  const exit = tour.locator("[data-tour-exit]");
+
+  await expect(tour).toBeInViewport();
+  expect(await frame.evaluate((element) => element.hasAttribute("src"))).toBe(false);
+  await enter.click();
+  await expect(exit).toBeVisible();
+  await exit.click();
+  await expect(enter).toBeFocused();
+  expect(await horizontalOverflow(page)).toBeLessThanOrEqual(1);
+});
+
 test("reduced motion uses the static journey fallback", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");

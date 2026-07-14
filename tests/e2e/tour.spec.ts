@@ -1,27 +1,53 @@
 import { expect, test } from "@playwright/test";
 import { horizontalOverflow } from "./helpers";
 
-test("Erzia exhibition uses the complete local virtual tour", async ({ page, request }) => {
-  await page.goto("/studio/");
-  const exhibitionLink = page.locator(".studio-tour a[href='/exhibitions/erzia/']");
-  await expect(exhibitionLink).toHaveCount(1);
-  await expect(exhibitionLink).toHaveAttribute("href", "/exhibitions/erzia/");
-
+test("homepage activates the complete local Erzia tour only on request", async ({ page, request }) => {
   const failedTourResponses: string[] = [];
+  const tourRequests: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/tours/erzia-pichugin/")) tourRequests.push(request.url());
+  });
   page.on("response", (response) => {
     if (response.url().includes("/tours/erzia-pichugin/") && !response.ok()) {
       failedTourResponses.push(`${response.status()} ${response.url()}`);
     }
   });
 
-  await page.goto("/exhibitions/erzia/");
-  const tourFrame = page.locator("iframe[src='/tours/erzia-pichugin/index.html']");
-  await expect(tourFrame).toBeVisible();
-  await expect(page.locator("a[href*='erzia-museum.ru'], a[href*='k360.ru']")).toHaveCount(0);
+  await page.goto("/");
+  const tour = page.locator("section#erzia-tour[data-tour-shell]");
+  const tourFrame = tour.locator("iframe[data-tour-frame]");
+  const enter = tour.locator("[data-tour-enter]");
+  const exit = tour.locator("[data-tour-exit]");
 
-  const frame = page.frameLocator("iframe[src='/tours/erzia-pichugin/index.html']");
+  await expect(tour).toHaveCount(1);
+  await expect(tourFrame).toHaveAttribute("data-tour-src", "/tours/erzia-pichugin/index.html");
+  expect(await tourFrame.evaluate((frame) => frame.hasAttribute("src"))).toBe(false);
+  await expect(enter).toBeVisible();
+  await expect(exit).toBeHidden();
+  expect(tourRequests).toEqual([]);
+
+  await enter.click();
+  await expect(tour).toHaveAttribute("data-started", "true");
+  await expect(tourFrame).toHaveAttribute("src", "/tours/erzia-pichugin/index.html");
+  await expect(exit).toBeVisible();
+
+  const frame = page.frameLocator("iframe[data-tour-frame]");
   await expect(frame.locator("#container")).toBeVisible();
+  await expect(page.locator("a[href*='erzia-museum.ru'], a[href*='k360.ru']")).toHaveCount(0);
   await expect(frame.locator("a[href*='erzia-museum.ru'], a[href*='k360.ru']")).toHaveCount(0);
+  expect(tourRequests.length).toBeGreaterThan(0);
+
+  await exit.click();
+  await expect(tour).not.toHaveAttribute("data-started", "true");
+  await expect(enter).toBeVisible();
+  await expect(enter).toBeFocused();
+  await expect(tourFrame).toHaveAttribute("src", "/tours/erzia-pichugin/index.html");
+
+  await enter.click();
+  await expect(tour).toHaveAttribute("data-started", "true");
+  await page.keyboard.press("Escape");
+  await expect(tour).not.toHaveAttribute("data-started", "true");
+  await expect(enter).toBeFocused();
 
   const [indexResponse, configResponse, playerResponse, tileResponse] = await Promise.all([
     request.get("/tours/erzia-pichugin/index.html"),

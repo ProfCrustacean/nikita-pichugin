@@ -7,7 +7,25 @@ import { load } from "cheerio";
 export const DEFAULT_BASE_URL = "https://nikita-pichugin.onrender.com";
 export const DEFAULT_CHANGED_FROM = "HEAD^";
 export const DEFAULT_TIMEOUT_MS = 8_000;
-export const REPRESENTATIVE_PATHS = ["/", "/works/", "/site/home-hero.webp", "/favicon.png"];
+export const TOUR_ENTRY_PATH = "/tours/erzia-pichugin/index.html";
+export const TOUR_ASSET_PATHS = [
+  TOUR_ENTRY_PATH,
+  "/tours/erzia-pichugin/museum-01.xml",
+  "/tours/erzia-pichugin/pano2vr_player.js",
+  "/tours/erzia-pichugin/images/05_o_0.jpg"
+];
+export const REMOVED_EXHIBITION_PATHS = [
+  "/exhibitions/",
+  "/exhibitions/erzia/",
+  "/exhibitions/future-test/"
+];
+export const REPRESENTATIVE_PATHS = [
+  "/",
+  "/works/",
+  "/site/home-hero.webp",
+  "/favicon.png",
+  ...TOUR_ASSET_PATHS
+];
 
 const runtime = createRequire(import.meta.url)("../src/generated/site-runtime.json");
 const REPRESENTATIVE_WORK_PATHS = [
@@ -15,15 +33,15 @@ const REPRESENTATIVE_WORK_PATHS = [
   runtime.fixtures.photographicWorkSlug,
   runtime.fixtures.multiAssetWorkSlug
 ].map((slug) => `/works/${slug}/`);
-const SITE_WIDE_PATHS = ["/", "/archive/", "/works/", "/studio/", "/contact/", "/exhibitions/erzia/"];
+const SITE_WIDE_PATHS = ["/", "/archive/", "/works/", "/studio/", "/contact/"];
 const CATALOG_PATHS = ["/", "/archive/", "/works/", "/studio/", ...REPRESENTATIVE_WORK_PATHS];
 const HTML_EXTENSIONS = new Set([".htm", ".html"]);
 const PAGE_REFERENCE_RULES = new Map([
   [
     "/",
     {
-      links: ["/works/", "/studio/", "/contact/", "/exhibitions/erzia/"],
-      resources: ["/favicon.png", "/site/home-hero.webp"]
+      links: ["/works/", "/studio/", "/contact/"],
+      resources: ["/favicon.png", "/site/home-hero.webp", "/site/exhibition-hall.webp", TOUR_ENTRY_PATH]
     }
   ],
   [
@@ -47,23 +65,16 @@ const PAGE_REFERENCE_RULES = new Map([
   [
     "/contact/",
     {
-      links: ["/", "/exhibitions/erzia/"],
+      links: ["/"],
       resources: ["/favicon.png", "/site/contact-hero.webp"]
     }
   ],
   [
     "/studio/",
     {
-      links: ["/", "/exhibitions/erzia/"],
+      links: ["/"],
       resources: ["/favicon.png"],
       resourcePatterns: [/^\/museum\/previews\/[a-f0-9]{64}\.webp$/]
-    }
-  ],
-  [
-    "/exhibitions/erzia/",
-    {
-      links: ["/"],
-      resources: ["/favicon.png", "/tours/erzia-pichugin/index.html"]
     }
   ]
 ]);
@@ -167,7 +178,7 @@ export function changedPathsFromFiles(files) {
     const file = rawFile.replaceAll("\\", "/");
     if (file.startsWith("public/") && file !== "public/health.json") {
       paths.add(normalizePath(`/${file.slice("public/".length)}`));
-      if (file.startsWith("public/tours/erzia-pichugin/")) paths.add("/exhibitions/erzia/");
+      if (file.startsWith("public/tours/erzia-pichugin/")) paths.add("/");
       continue;
     }
 
@@ -206,7 +217,7 @@ function routeFromFeatureFile(file) {
   if (feature === "archive") return ["/archive/"];
   if (feature === "contact") return ["/contact/"];
   if (feature === "studio") return ["/studio/"];
-  if (feature === "tour") return ["/exhibitions/erzia/"];
+  if (feature === "tour") return ["/"];
   return SITE_WIDE_PATHS;
 }
 
@@ -251,6 +262,11 @@ export function extractLocalReferences(html, pageUrl, baseUrl) {
     if (localPath) resources.add(localPath);
   });
 
+  document("[data-tour-src]").each((_, element) => {
+    const localPath = localPathFromReference(document(element).attr("data-tour-src"), pageUrl, baseUrl);
+    if (localPath) resources.add(localPath);
+  });
+
   document("img[srcset], source[srcset]").each((_, element) => {
     for (const candidate of parseSrcset(document(element).attr("srcset") ?? "")) {
       const localPath = localPathFromReference(candidate, pageUrl, baseUrl);
@@ -259,6 +275,67 @@ export function extractLocalReferences(html, pageUrl, baseUrl) {
   });
 
   return { links: [...links].sort(), resources: [...resources].sort() };
+}
+
+export function validateTourMarkup(pagePath, html) {
+  const pathname = new URL(pagePath, "https://local.invalid").pathname;
+  const document = load(html);
+  const staleLinks = document("a[href^='/exhibitions/']");
+  if (staleLinks.length > 0) {
+    throw new SmokeError("STALE_EXHIBITION_LINK", `${pathname} still links to a removed exhibition route`, {
+      page: pathname,
+      href: staleLinks.first().attr("href")
+    });
+  }
+
+  if (pathname === "/") {
+    const section = document("section#erzia-tour[data-tour-shell]");
+    if (section.length !== 1) {
+      throw new SmokeError("MISSING_HOME_TOUR", "Homepage must expose one embedded Erzia tour", {
+        page: pathname
+      });
+    }
+    const frame = section.find(`iframe[data-tour-frame][data-tour-src='${TOUR_ENTRY_PATH}']`);
+    if (frame.length !== 1 || frame.attr("src") !== undefined) {
+      throw new SmokeError("INVALID_HOME_TOUR_FRAME", "Homepage tour iframe must declare a deferred local source", {
+        page: pathname,
+        source: frame.attr("data-tour-src") ?? null,
+        eagerSource: frame.attr("src") ?? null
+      });
+    }
+    for (const control of ["data-tour-enter", "data-tour-exit"]) {
+      if (section.find(`[${control}]`).length !== 1) {
+        throw new SmokeError("MISSING_HOME_TOUR_CONTROL", `Homepage tour is missing ${control}`, {
+          page: pathname,
+          control
+        });
+      }
+    }
+    for (const navigationLabel of ["Основная навигация", "Нижняя навигация"]) {
+      const links = document(`nav[aria-label='${navigationLabel}'] a[href='/#erzia-tour']`)
+        .filter((_, element) => document(element).text().trim() === "Выставка");
+      if (links.length !== 1) {
+        throw new SmokeError("MISSING_HOME_TOUR_LINK", `${navigationLabel} must link to the homepage tour`, {
+          page: pathname,
+          navigationLabel
+        });
+      }
+    }
+  }
+
+  const contextualEntry = new Map([
+    ["/contact/", "contact"],
+    ["/studio/", "studio"]
+  ]).get(pathname);
+  if (contextualEntry) {
+    const links = document(`a[data-exhibition-entry='${contextualEntry}'][href='/#erzia-tour']`);
+    if (links.length !== 1 || links.attr("target")) {
+      throw new SmokeError("INVALID_CONTEXTUAL_TOUR_LINK", `${pathname} must link once to the homepage tour`, {
+        page: pathname,
+        entry: contextualEntry
+      });
+    }
+  }
 }
 
 export function validatePageReferences(pagePath, references) {
@@ -330,12 +407,17 @@ export async function runProductionSmoke({
     );
   }
 
+  await runWithConcurrency(REMOVED_EXHIBITION_PATHS, 3, (removedPath) =>
+    assertNotFound(removedPath, normalizedBaseUrl, timeoutMs, fetchImpl)
+  );
+
   const referencesToCheck = new Set();
   let pageCount = 0;
   let assetCount = 0;
   for (const primaryPath of primaryPaths) {
     if (isHtmlPagePath(primaryPath)) {
       const html = await fetchText(primaryPath, normalizedBaseUrl, timeoutMs, fetchImpl);
+      validateTourMarkup(primaryPath, html);
       const references = extractLocalReferences(html, new URL(primaryPath, normalizedBaseUrl), normalizedBaseUrl);
       validatePageReferences(primaryPath, references).forEach((reference) => referencesToCheck.add(reference));
       pageCount += 1;
@@ -363,10 +445,11 @@ export async function runProductionSmoke({
     explicitPaths: normalizedExplicitPaths,
     checks: {
       health: 1,
+      notFound: REMOVED_EXHIBITION_PATHS.length,
       pages: pageCount,
       assets: assetCount,
       localReferences: referencePaths.length,
-      requests: 1 + primaryPaths.length + referencePaths.length
+      requests: 1 + REMOVED_EXHIBITION_PATHS.length + primaryPaths.length + referencePaths.length
     },
     durationMs: Date.now() - startedAt
   };
@@ -407,12 +490,29 @@ async function probePath(requestPath, baseUrl, timeoutMs, fetchImpl) {
   await response.body?.cancel().catch(() => {});
 }
 
+async function assertNotFound(requestPath, baseUrl, timeoutMs, fetchImpl) {
+  const response = await request(
+    requestPath,
+    baseUrl,
+    { method: "GET", redirect: "manual" },
+    timeoutMs,
+    fetchImpl
+  );
+  if (response.status !== 404) {
+    throw new SmokeError("REMOVED_ROUTE_AVAILABLE", `${requestPath} must return HTTP 404, got ${response.status}`, {
+      path: requestPath,
+      status: response.status
+    });
+  }
+  await response.body?.cancel().catch(() => {});
+}
+
 async function request(requestPath, baseUrl, init, timeoutMs, fetchImpl) {
   const url = new URL(requestPath, baseUrl);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    return await fetchImpl(url, { ...init, redirect: "follow", signal: controller.signal });
+    return await fetchImpl(url, { ...init, redirect: init.redirect ?? "follow", signal: controller.signal });
   } catch (error) {
     if (controller.signal.aborted || error?.name === "AbortError") {
       throw new SmokeError("REQUEST_TIMEOUT", `${url.pathname} exceeded ${timeoutMs}ms`, {

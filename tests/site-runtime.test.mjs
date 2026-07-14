@@ -58,12 +58,14 @@ describe("site runtime generator", () => {
     expect(validateSiteRuntime(unknown).join("\n")).toContain("additional properties");
   });
 
-  it("validates site copy, navigation routes, and configured assets without rebuilding the catalog", () => {
+  it("validates site copy, local navigation hrefs, and configured assets without rebuilding the catalog", () => {
     expect(validateSiteConfig(source.siteConfig, { assets: runtime.assets })).toEqual([]);
+    expect(source.siteConfig.exhibitionTourHref).toBe("/#erzia-tour");
+    expect(source.siteConfig.staticRoutes).not.toContain("/exhibitions/erzia/");
 
     const invalid = structuredClone(source.siteConfig);
     invalid.navigation.push({ label: "Повтор", href: "/works/" });
-    invalid.exhibitionTourPath = "/missing/";
+    invalid.exhibitionTourHref = "/missing/#erzia-tour";
     invalid.portraitAssetId = "asset_0000000000000000";
     invalid.unexpected = true;
     const errors = validateSiteConfig(invalid, { assets: runtime.assets }).join("\n");
@@ -72,8 +74,28 @@ describe("site runtime generator", () => {
     delete invalid.unexpected;
     const semanticErrors = validateSiteConfig(invalid, { assets: runtime.assets }).join("\n");
     expect(semanticErrors).toContain("duplicate route");
-    expect(semanticErrors).toContain("exhibitionTourPath");
+    expect(semanticErrors).toContain("exhibitionTourHref");
+    expect(semanticErrors).toContain("/missing/");
     expect(semanticErrors).toContain("missing asset");
+  });
+
+  it("keeps static routes fragment-free while accepting fragments on registered local hrefs", () => {
+    const anchored = structuredClone(source.siteConfig);
+    anchored.navigation.push({ label: "Архивный раздел", href: "/archive/#selected" });
+    expect(validateSiteConfig(anchored, { assets: runtime.assets })).toEqual([]);
+
+    const fragmentRoute = structuredClone(source.siteConfig);
+    fragmentRoute.staticRoutes.push("/archive/#selected");
+    expect(validateSiteConfig(fragmentRoute, { assets: runtime.assets }).join("\n")).toContain("pattern");
+
+    const unregisteredHref = structuredClone(source.siteConfig);
+    unregisteredHref.navigation.push({ label: "Неизвестный раздел", href: "/missing/#selected" });
+    expect(validateSiteConfig(unregisteredHref, { assets: runtime.assets }).join("\n"))
+      .toContain("pathname is not registered: /missing/");
+
+    const externalHref = structuredClone(source.siteConfig);
+    externalHref.navigation.push({ label: "Внешний раздел", href: "https://example.com/" });
+    expect(validateSiteConfig(externalHref, { assets: runtime.assets }).join("\n")).toContain("pattern");
   });
 
   it("preserves catalog order, links, and source counts while dropping archival-only fields", () => {

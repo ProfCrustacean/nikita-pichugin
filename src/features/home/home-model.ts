@@ -37,6 +37,7 @@ export interface HomePageModel {
   intro: typeof homeConfig.intro;
   journey: { works: JourneyWork[]; scenes: JourneyScene[]; copy: typeof homeConfig.journey.copy };
   collection: typeof homeConfig.collection & { workCount: number; works: HomeCollectionWork[] };
+  tour: typeof homeConfig.tour;
   studio: typeof homeConfig.studio & { portrait: HomeImage };
 }
 
@@ -117,6 +118,13 @@ export function buildHomePageModel(siteUrl: URL): HomePageModel {
             url: new URL("/studio/", siteUrl).href,
             image: new URL(portraitPath, siteUrl).href,
             jobTitle: homeConfig.seo.jobTitle
+          },
+          {
+            "@type": "CreativeWork",
+            name: "Виртуальный тур по выставке Никиты Пичугина в Музее Эрьзи",
+            description: homeConfig.tour.summary,
+            url: new URL(`/#${homeConfig.tour.id}`, siteUrl).href,
+            creator: { "@type": "Person", name: homeConfig.seo.personName }
           }
         ]
       }
@@ -138,6 +146,7 @@ export function buildHomePageModel(siteUrl: URL): HomePageModel {
       workCount: artworkWorks.length,
       works: homeConfig.collection.workIds.map(requireWork).map(toCollectionWork)
     },
+    tour: homeConfig.tour,
     studio: {
       ...homeConfig.studio,
       portrait: {

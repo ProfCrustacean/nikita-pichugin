@@ -13,8 +13,8 @@ test("homepage is the production Sunday Light experience", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Никита Пичугин" })).toBeVisible();
   await expect(page.locator(".sunday-header img")).toHaveAttribute("src", "/favicon.png");
   await expect(page.locator(".sunday-footer img")).toHaveAttribute("src", "/favicon.png");
-  const headerExhibitionLink = page.locator("nav[aria-label='Основная навигация'] a[href='/exhibitions/erzia/']");
-  const footerExhibitionLink = page.locator("nav[aria-label='Нижняя навигация'] a[href='/exhibitions/erzia/']");
+  const headerExhibitionLink = page.locator("nav[aria-label='Основная навигация'] a[href='/#erzia-tour']");
+  const footerExhibitionLink = page.locator("nav[aria-label='Нижняя навигация'] a[href='/#erzia-tour']");
   await expect(headerExhibitionLink).toHaveCount(1);
   await expect(headerExhibitionLink).toHaveText("Выставка");
   await expect(footerExhibitionLink).toHaveCount(1);
@@ -28,11 +28,11 @@ test("homepage is the production Sunday Light experience", async ({ page }) => {
 });
 
 test("exhibition is discoverable in editorial contexts", async ({ page }) => {
-  for (const [route, entry] of [["/", "home"], ["/contact/", "contact"]]) {
+  for (const [route, entry] of [["/contact/", "contact"], ["/studio/", "studio"]]) {
     await page.goto(route);
     const link = page.locator(`[data-exhibition-entry='${entry}']`);
     await expect(link).toBeVisible();
-    await expect(link).toHaveAttribute("href", "/exhibitions/erzia/");
+    await expect(link).toHaveAttribute("href", "/#erzia-tour");
     await expect(link).not.toHaveAttribute("target", "_blank");
   }
 });
@@ -50,6 +50,13 @@ test("canonical destinations for hosting redirects exist", async ({ request }) =
   for (const route of ["/contact/", "/studio/", "/works/otrazhenie-081413fe/"]) {
     const response = await request.get(route);
     expect(response.status()).toBe(200);
+  }
+});
+
+test("removed exhibition routes stay removed", async ({ request }) => {
+  for (const route of ["/exhibitions/", "/exhibitions/erzia/", "/exhibitions/future-test/"]) {
+    const response = await request.get(route);
+    expect(response.status()).toBe(404);
   }
 });
 

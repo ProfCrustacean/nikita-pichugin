@@ -98,7 +98,7 @@ export interface SiteContent {
   brand: { ru: string; en: string };
   defaultDescription: string;
   footerInquiryLabel: string;
-  exhibitionTourPath: string;
+  exhibitionTourHref: string;
   navigation: Array<{ label: string; href: string }>;
   contact: {
     phone: string;

@@ -49,7 +49,7 @@ export interface StudioPageModel {
   portrait: StudioImageView;
   processImages: readonly StudioImageView[];
   observationWorks: MuseumWork[];
-  exhibitionTourPath: string;
+  exhibitionTourHref: string;
 }
 
 function imageView(asset: MuseumAsset, alt: string): StudioImageView {
@@ -84,6 +84,6 @@ export function buildStudioPageModel(): StudioPageModel {
     portrait: imageView(portrait, "Портрет Никиты Пичугина"),
     processImages,
     observationWorks,
-    exhibitionTourPath: museumSiteContent.exhibitionTourPath
+    exhibitionTourHref: museumSiteContent.exhibitionTourHref
   };
 }

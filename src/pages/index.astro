@@ -1,11 +1,11 @@
 ---
-import ExhibitionInvitation from "@components/ExhibitionInvitation.astro";
 import LandscapeJourney from "@components/LandscapeJourney.astro";
 import SundayLayout from "@layouts/SundayLayout.astro";
 import HomeCollection from "../features/home/HomeCollection.astro";
 import HomeHero from "../features/home/HomeHero.astro";
 import HomeIntro from "../features/home/HomeIntro.astro";
 import HomeStudioTeaser from "../features/home/HomeStudioTeaser.astro";
+import ErziaTourSection from "../features/tour/ErziaTourSection.astro";
 import "../features/home/home.css";
 import { buildHomePageModel } from "../features/home/home-model";
 
@@ -29,6 +29,6 @@ const home = buildHomePageModel(Astro.site ?? Astro.url);
     copy={home.journey.copy}
   />
   <HomeCollection collection={home.collection} />
-  <ExhibitionInvitation entry="home" headingId="home-exhibition-title" />
+  <ErziaTourSection tour={home.tour} />
   <HomeStudioTeaser studio={home.studio} />
 </SundayLayout>

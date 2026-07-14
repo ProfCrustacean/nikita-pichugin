@@ -6,7 +6,8 @@ import {
   commitsMatch,
   parseCliArgs,
   runProductionSmoke,
-  validatePageReferences
+  validatePageReferences,
+  validateTourMarkup
 } from "../scripts/smoke-production.mjs";
 
 const openServers = new Set();
@@ -33,7 +34,6 @@ describe("production smoke helpers", () => {
       "/",
       "/archive/",
       "/contact/",
-      "/exhibitions/erzia/",
       "/studio/",
       "/works/"
     ]);
@@ -41,12 +41,15 @@ describe("production smoke helpers", () => {
 
   it("routes features, site config, and generated catalog changes to their affected pages", () => {
     expect(changedPathsFromFiles(["src/features/studio/StudioPage.astro"])).toEqual(["/studio/"]);
-    expect(changedPathsFromFiles(["src/features/tour/TourView.astro"])).toEqual(["/exhibitions/erzia/"]);
+    expect(changedPathsFromFiles(["src/features/tour/TourView.astro"])).toEqual(["/"]);
+    expect(changedPathsFromFiles(["public/tours/erzia-pichugin/museum-01.xml"])).toEqual([
+      "/",
+      "/tours/erzia-pichugin/museum-01.xml"
+    ]);
     expect(changedPathsFromFiles(["src/config/site-config.json"])).toEqual([
       "/",
       "/archive/",
       "/contact/",
-      "/exhibitions/erzia/",
       "/studio/",
       "/works/"
     ]);
@@ -79,9 +82,19 @@ describe("production smoke helpers", () => {
     expect(() =>
       validatePageReferences("/contact/", {
         links: ["/"],
-        resources: ["/favicon.png", "/site/contact-hero.webp"]
+        resources: ["/favicon.png"]
       })
     ).toThrow(SmokeError);
+  });
+
+  it("requires the homepage tour to stay deferred and locally linked", () => {
+    expect(() => validateTourMarkup("/", homeHtml())).not.toThrow();
+    expect(() => validateTourMarkup("/", homeHtml({ eager: true }))).toThrowError(
+      expect.objectContaining({ code: "INVALID_HOME_TOUR_FRAME" })
+    );
+    expect(() => validateTourMarkup("/", homeHtml({ tourHref: "/exhibitions/erzia/" }))).toThrowError(
+      expect.objectContaining({ code: "STALE_EXHIBITION_LINK" })
+    );
   });
 });
 
@@ -97,11 +110,17 @@ describe("production smoke fixture", () => {
 
     expect(result.status).toBe("ok");
     expect(result.changedPaths).toEqual(["/contact/"]);
-    expect(result.checks.pages).toBe(3);
+    expect(result.checks.pages).toBe(4);
+    expect(result.checks.notFound).toBe(3);
     expect(fixture.requests).toContain("GET /health.json");
     expect(fixture.requests).toContain("GET /contact/");
+    expect(fixture.requests).toContain("GET /tours/erzia-pichugin/index.html");
+    expect(fixture.requests).toContain("HEAD /tours/erzia-pichugin/museum-01.xml");
     expect(fixture.requests).toContain("HEAD /site/contact-hero.webp");
     expect(fixture.requests).toContain("HEAD /works/sample-work/");
+    expect(fixture.requests).toContain("GET /exhibitions/");
+    expect(fixture.requests).toContain("GET /exhibitions/erzia/");
+    expect(fixture.requests).toContain("GET /exhibitions/future-test/");
   });
 
   it("fails on a deployed commit mismatch", async () => {
@@ -121,13 +140,7 @@ async function startFixture({ commit }) {
   const requests = [];
   const preview = `/museum/previews/${"a".repeat(64)}.webp`;
   const htmlByPath = new Map([
-    [
-      "/",
-      html({
-        links: ["/works/", "/studio/", "/contact/", "/exhibitions/erzia/"],
-        resources: ["/favicon.png", "/site/home-hero.webp"]
-      })
-    ],
+    ["/", homeHtml()],
     [
       "/works/",
       html({
@@ -138,8 +151,9 @@ async function startFixture({ commit }) {
     [
       "/contact/",
       html({
-        links: ["/", "/exhibitions/erzia/"],
-        resources: ["/favicon.png", "/site/contact-hero.webp"]
+        links: ["/"],
+        resources: ["/favicon.png", "/site/contact-hero.webp"],
+        body: '<a data-exhibition-entry="contact" href="/#erzia-tour">tour</a>'
       })
     ]
   ]);
@@ -159,6 +173,11 @@ async function startFixture({ commit }) {
       response.end(request.method === "HEAD" ? undefined : body);
       return;
     }
+    if (["/exhibitions/", "/exhibitions/erzia/", "/exhibitions/future-test/"].includes(pathname)) {
+      response.writeHead(404, { "content-type": "text/html" });
+      response.end("missing");
+      return;
+    }
     response.writeHead(200, { "content-type": "application/octet-stream", "content-length": "1" });
     response.end(request.method === "HEAD" ? undefined : "x");
   });
@@ -168,8 +187,20 @@ async function startFixture({ commit }) {
   return { baseUrl: `http://127.0.0.1:${address.port}`, requests };
 }
 
-function html({ links, resources }) {
+function homeHtml({ eager = false, tourHref = "/#erzia-tour" } = {}) {
+  return `<!doctype html><html><head><link rel="icon" href="/favicon.png"></head><body>
+    <nav aria-label="Основная навигация"><a href="/works/">works</a><a href="/studio/">studio</a><a href="/contact/">contact</a><a href="${tourHref}">Выставка</a></nav>
+    <nav aria-label="Нижняя навигация"><a href="${tourHref}">Выставка</a></nav>
+    <img src="/site/home-hero.webp" alt=""><img src="/site/exhibition-hall.webp" alt="">
+    <section id="erzia-tour" data-tour-shell>
+      <iframe data-tour-frame data-tour-src="/tours/erzia-pichugin/index.html"${eager ? ' src="/tours/erzia-pichugin/index.html"' : ""}></iframe>
+      <button data-tour-enter>enter</button><button data-tour-exit>exit</button>
+    </section>
+  </body></html>`;
+}
+
+function html({ links, resources, body = "" }) {
   return `<!doctype html><html><head><link rel="icon" href="${resources[0]}"></head><body>${links
     .map((href) => `<a href="${href}">link</a>`)
-    .join("")}${resources.slice(1).map((src) => `<img src="${src}" alt="">`).join("")}</body></html>`;
+    .join("")}${resources.slice(1).map((src) => `<img src="${src}" alt="">`).join("")}${body}</body></html>`;
 }

@@ -1,61 +1,102 @@
 export type TourCleanup = () => void;
 
-export interface TourOptions {
-  backHref: string;
-}
-
-export function initTour(root: HTMLElement, options: TourOptions): TourCleanup {
+export function initTour(root: HTMLElement): TourCleanup {
   const intro = root.querySelector<HTMLElement>("[data-tour-intro]");
   const enter = root.querySelector<HTMLButtonElement>("[data-tour-enter]");
+  const exit = root.querySelector<HTMLButtonElement>("[data-tour-exit]");
   const frame = root.querySelector<HTMLIFrameElement>("[data-tour-frame]");
   const loading = root.querySelector<HTMLElement>("[data-tour-loading]");
-  if (!intro || !enter || !frame || root.dataset.bound === "true") return () => {};
+  if (!intro || !enter || !exit || !frame || !loading || root.dataset.bound === "true") return () => {};
 
   root.dataset.bound = "true";
   let hideTimer: number | undefined;
+  let frameWindow: Window | null = null;
   const initialState = {
     loaded: root.dataset.loaded,
     started: root.dataset.started,
     introHidden: intro.hidden,
     introAriaHidden: intro.getAttribute("aria-hidden"),
+    exitHidden: exit.hidden,
     frameTabIndex: frame.getAttribute("tabindex"),
-    loadingHidden: loading?.hidden
+    frameSrc: frame.getAttribute("src"),
+    loadingHidden: loading.hidden
   };
 
+  const removeFrameKeydown = () => {
+    frameWindow?.removeEventListener("keydown", handleKeydown, true);
+    frameWindow = null;
+  };
+  const bindFrameKeydown = () => {
+    removeFrameKeydown();
+    try {
+      frameWindow = frame.contentWindow;
+      frameWindow?.addEventListener("keydown", handleKeydown, true);
+    } catch {
+      frameWindow = null;
+    }
+  };
   const markLoaded = () => {
     root.dataset.loaded = "true";
-    if (loading) loading.hidden = true;
+    loading.hidden = true;
+    bindFrameKeydown();
+    if (root.dataset.started === "true") frame.focus({ preventScroll: true });
   };
   const enterTour = () => {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (hideTimer !== undefined) window.clearTimeout(hideTimer);
+    if (!frame.getAttribute("src")) {
+      const source = frame.dataset.tourSrc;
+      if (!source) return;
+      loading.hidden = false;
+      frame.src = source;
+    }
     root.dataset.started = "true";
     frame.tabIndex = 0;
-    frame.focus({ preventScroll: true });
+    exit.hidden = false;
     intro.setAttribute("aria-hidden", "true");
     hideTimer = window.setTimeout(() => { intro.hidden = true; }, reduceMotion ? 0 : 760);
+    frame.focus({ preventScroll: true });
+  };
+  const leaveTour = () => {
+    if (root.dataset.started !== "true") return;
+    if (hideTimer !== undefined) window.clearTimeout(hideTimer);
+    hideTimer = undefined;
+    delete root.dataset.started;
+    intro.hidden = false;
+    intro.removeAttribute("aria-hidden");
+    exit.hidden = true;
+    frame.tabIndex = -1;
+    enter.focus({ preventScroll: true });
   };
   const handleKeydown = (event: KeyboardEvent) => {
-    if (event.key === "Escape" && root.dataset.started !== "true") window.location.assign(options.backHref);
+    if (event.key !== "Escape" || root.dataset.started !== "true") return;
+    event.preventDefault();
+    leaveTour();
   };
 
   frame.addEventListener("load", markLoaded);
   enter.addEventListener("click", enterTour);
+  exit.addEventListener("click", leaveTour);
   window.addEventListener("keydown", handleKeydown);
-  if (frame.contentDocument?.readyState === "complete") markLoaded();
 
   return () => {
     if (hideTimer !== undefined) window.clearTimeout(hideTimer);
+    removeFrameKeydown();
     frame.removeEventListener("load", markLoaded);
     enter.removeEventListener("click", enterTour);
+    exit.removeEventListener("click", leaveTour);
     window.removeEventListener("keydown", handleKeydown);
     restoreDataset(root, "loaded", initialState.loaded);
     restoreDataset(root, "started", initialState.started);
     intro.hidden = initialState.introHidden;
+    exit.hidden = initialState.exitHidden;
     if (initialState.introAriaHidden === null) intro.removeAttribute("aria-hidden");
     else intro.setAttribute("aria-hidden", initialState.introAriaHidden);
     if (initialState.frameTabIndex === null) frame.removeAttribute("tabindex");
     else frame.setAttribute("tabindex", initialState.frameTabIndex);
-    if (loading && initialState.loadingHidden !== undefined) loading.hidden = initialState.loadingHidden;
+    if (initialState.frameSrc === null) frame.removeAttribute("src");
+    else frame.setAttribute("src", initialState.frameSrc);
+    loading.hidden = initialState.loadingHidden;
     delete root.dataset.bound;
   };
 }

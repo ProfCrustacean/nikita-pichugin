@@ -50,6 +50,23 @@ export interface HomeConfig {
     cta: string;
     href: string;
   };
+  tour: {
+    id: string;
+    poster: {
+      src: string;
+      alt: string;
+      width: number;
+      height: number;
+    };
+    frameSrc: string;
+    frameTitle: string;
+    kicker: string;
+    heading: readonly [string, string];
+    summary: string;
+    enterLabel: string;
+    exitLabel: string;
+    hint: string;
+  };
   studio: {
     portraitAlt: string;
     kicker: string;
@@ -116,6 +133,23 @@ export const homeConfig = {
     description: "Для работ с известными данными указаны год, материалы и размер.",
     cta: "Открыть собрание",
     href: "/works/"
+  },
+  tour: {
+    id: "erzia-tour",
+    poster: {
+      src: "/site/exhibition-hall.webp",
+      alt: "Картины Никиты Пичугина в зале Музея Эрьзи",
+      width: 2000,
+      height: 2000
+    },
+    frameSrc: "/tours/erzia-pichugin/index.html",
+    frameTitle: "Виртуальный тур по выставке Никиты Пичугина в Музее Эрьзи",
+    kicker: "Музей Эрьзи · Саранск",
+    heading: ["Выставка", "Никиты Пичугина"],
+    summary: "Пять панорамных точек, соединённых в выставочный маршрут.",
+    enterLabel: "Войти в выставку",
+    exitLabel: "Вернуться к странице",
+    hint: "Поворачивайте панораму мышью или касанием"
   },
   studio: {
     portraitAlt: "Портрет Никиты Пичугина",

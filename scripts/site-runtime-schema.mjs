@@ -1,7 +1,8 @@
 import { catalogSchema } from "./museum-schema.mjs";
 
 export const SITE_RUNTIME_SCHEMA_VERSION = "1.0.0";
-const TRAILING_SLASH_PATH_PATTERN = "^/(?:.*?/)?$";
+const TRAILING_SLASH_PATH_PATTERN = "^/(?:[^?#]*/)?$";
+const LOCAL_HREF_PATTERN = "^/(?:[^?#]*/)?(?:#[A-Za-z][A-Za-z0-9._:-]*)?$";
 
 const pickObjectProperties = (schema, propertyNames) => ({
   ...schema,
@@ -142,7 +143,7 @@ export const siteConfigSchema = {
     "brand",
     "defaultDescription",
     "footerInquiryLabel",
-    "exhibitionTourPath",
+    "exhibitionTourHref",
     "navigation",
     "contact",
     "portraitAssetId",
@@ -153,7 +154,7 @@ export const siteConfigSchema = {
     brand: { $ref: "#/$defs/localizedText" },
     defaultDescription: { type: "string", minLength: 1 },
     footerInquiryLabel: { type: "string", minLength: 1 },
-    exhibitionTourPath: { type: "string", pattern: TRAILING_SLASH_PATH_PATTERN },
+    exhibitionTourHref: { type: "string", pattern: LOCAL_HREF_PATTERN },
     navigation: {
       type: "array",
       minItems: 1,
@@ -163,7 +164,7 @@ export const siteConfigSchema = {
         required: ["label", "href"],
         properties: {
           label: { type: "string", minLength: 1 },
-          href: { type: "string", pattern: TRAILING_SLASH_PATH_PATTERN }
+          href: { type: "string", pattern: LOCAL_HREF_PATTERN }
         }
       }
     },

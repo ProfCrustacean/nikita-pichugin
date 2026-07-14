@@ -1,0 +1,67 @@
+---
+import type { HomePageModel } from "../home/home-model";
+import "./tour.css";
+
+interface Props {
+  tour: HomePageModel["tour"];
+}
+
+const { tour } = Astro.props;
+const headingId = `${tour.id}-title`;
+---
+
+<section
+  id={tour.id}
+  class="tour-shell"
+  data-tour-shell
+  aria-labelledby={headingId}
+>
+  <div class="tour-canvas">
+    <img
+      class="tour-poster"
+      src={tour.poster.src}
+      alt={tour.poster.alt}
+      width={tour.poster.width}
+      height={tour.poster.height}
+      loading="lazy"
+    />
+    <p class="tour-loading" data-tour-loading role="status" hidden>Панорама загружается</p>
+    <iframe
+      data-tour-frame
+      data-tour-src={tour.frameSrc}
+      title={tour.frameTitle}
+      allowfullscreen
+      tabindex="-1"
+    ></iframe>
+  </div>
+
+  <button class="tour-exit" type="button" data-tour-exit hidden>
+    <span aria-hidden="true">←</span>
+    <span>{tour.exitLabel}</span>
+  </button>
+
+  <div class="tour-intro" data-tour-intro>
+    <div class="tour-intro__copy">
+      <p class="tour-kicker">{tour.kicker}</p>
+      <h2 id={headingId}>{tour.heading[0]}<br />{tour.heading[1]}</h2>
+      <p class="tour-summary">{tour.summary}</p>
+      <button class="tour-enter" type="button" data-tour-enter>
+        <span>{tour.enterLabel}</span>
+        <span aria-hidden="true">→</span>
+      </button>
+      <noscript>
+        <a class="tour-noscript" href={tour.frameSrc}>Открыть панораму</a>
+      </noscript>
+    </div>
+    <p class="tour-hint" aria-hidden="true">{tour.hint}</p>
+  </div>
+</section>
+
+<script>
+  import { initTour } from "./tour-controller";
+
+  document.querySelectorAll<HTMLElement>("[data-tour-shell]").forEach((shell) => {
+    const cleanup = initTour(shell);
+    document.addEventListener("astro:before-swap", cleanup, { once: true });
+  });
+</script>

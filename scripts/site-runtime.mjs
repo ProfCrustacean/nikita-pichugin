@@ -49,6 +49,8 @@ const parseJsonLines = (source, label) => source
 const formatSchemaErrors = (label, errors = []) => errors
   .map((error) => `${label}${error.instancePath || "/"}: ${error.message}`);
 
+const pathnameFromLocalHref = (href) => new URL(href, "https://nikitapichugin.ru").pathname;
+
 export function validateSiteConfig(siteConfig, { assets = [] } = {}) {
   if (!validateSiteConfigSchema(siteConfig)) {
     return formatSchemaErrors("site-config", validateSiteConfigSchema.errors);
@@ -58,12 +60,14 @@ export function validateSiteConfig(siteConfig, { assets = [] } = {}) {
   const staticRoutes = new Set(siteConfig.staticRoutes);
   const navigationHrefs = new Set();
   if (!staticRoutes.has("/")) errors.push("site-config/staticRoutes: homepage route is required");
-  if (!staticRoutes.has(siteConfig.exhibitionTourPath)) {
-    errors.push("site-config/exhibitionTourPath: route must be registered in staticRoutes");
+  const exhibitionTourPathname = pathnameFromLocalHref(siteConfig.exhibitionTourHref);
+  if (!staticRoutes.has(exhibitionTourPathname)) {
+    errors.push(`site-config/exhibitionTourHref: pathname is not registered: ${exhibitionTourPathname}`);
   }
   for (const item of siteConfig.navigation) {
-    if (!staticRoutes.has(item.href)) {
-      errors.push(`site-config/navigation: route is not registered: ${item.href}`);
+    const pathname = pathnameFromLocalHref(item.href);
+    if (!staticRoutes.has(pathname)) {
+      errors.push(`site-config/navigation: pathname is not registered: ${pathname}`);
     }
     if (navigationHrefs.has(item.href)) {
       errors.push(`site-config/navigation: duplicate route: ${item.href}`);

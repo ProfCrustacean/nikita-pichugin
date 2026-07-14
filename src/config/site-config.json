@@ -6,11 +6,11 @@
   },
   "defaultDescription": "Мастерская художника Никиты Пичугина: живопись, собрание работ и контакты.",
   "footerInquiryLabel": "Выставки и приобретение работ",
-  "exhibitionTourPath": "/exhibitions/erzia/",
+  "exhibitionTourHref": "/#erzia-tour",
   "navigation": [
     { "label": "Работы", "href": "/works/" },
     { "label": "Архив", "href": "/archive/" },
-    { "label": "Выставка", "href": "/exhibitions/erzia/" },
+    { "label": "Выставка", "href": "/#erzia-tour" },
     { "label": "Мастерская", "href": "/studio/" },
     { "label": "Контакты", "href": "/contact/" }
   ],
@@ -27,7 +27,6 @@
     "/works/",
     "/archive/",
     "/studio/",
-    "/exhibitions/erzia/",
     "/contact/"
   ]
 }
