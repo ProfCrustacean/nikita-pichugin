@@ -4,7 +4,6 @@
   height: 100svh;
   min-height: 560px;
   overflow: hidden;
-  scroll-margin-top: 64px;
   color: var(--white);
   background: #1f201b;
   isolation: isolate;

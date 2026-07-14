@@ -84,6 +84,9 @@ test("mobile exhibition anchor enters and leaves the homepage tour", async ({ pa
   const exit = tour.locator("[data-tour-exit]");
 
   await expect(tour).toBeInViewport();
+  await expect
+    .poll(async () => Math.abs(await tour.evaluate((element) => element.getBoundingClientRect().top)))
+    .toBeLessThanOrEqual(1);
   expect(await frame.evaluate((element) => element.hasAttribute("src"))).toBe(false);
   await enter.click();
   await expect(exit).toBeVisible();
