@@ -10,7 +10,9 @@ export function initTour(root: HTMLElement): TourCleanup {
 
   root.dataset.bound = "true";
   let hideTimer: number | undefined;
+  let scrollRestoreTimer: number | undefined;
   let frameWindow: Window | null = null;
+  let activationScrollY: number | undefined;
   const initialState = {
     loaded: root.dataset.loaded,
     started: root.dataset.started,
@@ -39,11 +41,20 @@ export function initTour(root: HTMLElement): TourCleanup {
     root.dataset.loaded = "true";
     loading.hidden = true;
     bindFrameKeydown();
-    if (root.dataset.started === "true") frame.focus({ preventScroll: true });
+    if (root.dataset.started === "true" && activationScrollY !== undefined) {
+      const scrollY = activationScrollY;
+      scrollRestoreTimer = window.setTimeout(() => {
+        const previousBehavior = document.documentElement.style.scrollBehavior;
+        document.documentElement.style.scrollBehavior = "auto";
+        window.scrollTo(0, scrollY);
+        document.documentElement.style.scrollBehavior = previousBehavior;
+      }, 0);
+    }
   };
   const enterTour = () => {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (hideTimer !== undefined) window.clearTimeout(hideTimer);
+    activationScrollY = window.scrollY;
     if (!frame.getAttribute("src")) {
       const source = frame.dataset.tourSrc;
       if (!source) return;
@@ -55,12 +66,15 @@ export function initTour(root: HTMLElement): TourCleanup {
     exit.hidden = false;
     intro.setAttribute("aria-hidden", "true");
     hideTimer = window.setTimeout(() => { intro.hidden = true; }, reduceMotion ? 0 : 760);
-    frame.focus({ preventScroll: true });
+    exit.focus({ preventScroll: true });
   };
   const leaveTour = () => {
     if (root.dataset.started !== "true") return;
     if (hideTimer !== undefined) window.clearTimeout(hideTimer);
+    if (scrollRestoreTimer !== undefined) window.clearTimeout(scrollRestoreTimer);
     hideTimer = undefined;
+    scrollRestoreTimer = undefined;
+    activationScrollY = undefined;
     delete root.dataset.started;
     intro.hidden = false;
     intro.removeAttribute("aria-hidden");
@@ -81,6 +95,7 @@ export function initTour(root: HTMLElement): TourCleanup {
 
   return () => {
     if (hideTimer !== undefined) window.clearTimeout(hideTimer);
+    if (scrollRestoreTimer !== undefined) window.clearTimeout(scrollRestoreTimer);
     removeFrameKeydown();
     frame.removeEventListener("load", markLoaded);
     enter.removeEventListener("click", enterTour);

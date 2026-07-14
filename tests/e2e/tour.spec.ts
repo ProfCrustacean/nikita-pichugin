@@ -33,6 +33,8 @@ test("homepage activates the complete local Erzia tour only on request", async (
 
   const frame = page.frameLocator("iframe[data-tour-frame]");
   await expect(frame.locator("#container")).toBeVisible();
+  await expect(exit).toBeInViewport();
+  await expect(exit).toBeFocused();
   await expect(page.locator("a[href*='erzia-museum.ru'], a[href*='k360.ru']")).toHaveCount(0);
   await expect(frame.locator("a[href*='erzia-museum.ru'], a[href*='k360.ru']")).toHaveCount(0);
   expect(tourRequests.length).toBeGreaterThan(0);

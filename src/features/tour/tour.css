@@ -116,6 +116,10 @@
   transition: color 180ms ease, background 180ms ease;
 }
 
+.tour-shell[data-started="true"] .tour-exit {
+  position: fixed;
+}
+
 .tour-exit:hover,
 .tour-exit:focus-visible {
   color: #1f201b;
